@@ -1,16 +1,24 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:recommended", ":semanticCommits"],
-  "enabledManagers": ["mise", "github-actions"],
+  "enabledManagers": ["github-actions"],
   "timezone": "Europe/Paris",
   "schedule": ["before 8am on monday"],
   "automerge": false,
-  "prConcurrentLimit": 3,
-  "ignorePaths": ["examples/**", "**/*.local.toml", "miserc.toml"],
-  "mise": {
-    "managerFilePatterns": ["/^config(?:\\.[^.]+)?\\.toml$/"]
-  },
-  "lockFileMaintenance": {
-    "enabled": true
-  }
+  "prConcurrentLimit": 2,
+  "dependencyDashboard": true,
+  "packageRules": [
+    {
+      "description": "Keep runner images and other CI dependencies under manual review.",
+      "matchManagers": ["github-actions"],
+      "enabled": false
+    },
+    {
+      "description": "Update repository actions and reusable workflows while retaining commit pins.",
+      "matchManagers": ["github-actions"],
+      "matchDepTypes": ["action", "workflow"],
+      "enabled": true,
+      "pinDigests": true
+    }
+  ]
 }

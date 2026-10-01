@@ -122,9 +122,26 @@ Pour un projet applicatif, une analyse supplémentaire est disponible : `mise ru
 
 ## Automatisation des dependances
 
-[renovate.json](../renovate.json) prépare des PR de dépendances mise et GitHub Actions, sans fusion automatique, chaque lundi. Le motif explicite inclut les `config*.toml` à la racine, que le motif standard du [gestionnaire mise Renovate](https://docs.renovatebot.com/modules/manager/mise/) ne couvre pas dans cette arborescence.
+`updateall` entretient le poste, mais ne modifie pas les références des actions GitHub dans les workflows versionnés. [renovate.json](../renovate.json) couvre ce besoin : proposer des PR pour actualiser les actions et les workflows réutilisables, en conservant leur verrouillage par SHA. Voir [le gestionnaire GitHub Actions de Renovate](https://docs.renovatebot.com/modules/manager/github-actions/).
 
-La configuration seule n'active aucun bot. Dans le dépôt cible, installer/autoriser l'application Renovate sur ce dépôt, puis vérifier l'onboarding et le Dependency Dashboard. La mise à jour des lockfiles dépend aussi de la politique d'exécution du service Renovate ; si elle est refusée, utiliser le parcours manuel ci-dessus. La version et l'empreinte de l'installateur mise, les commits shell, APT et Codex restent à revoir explicitement. Examiner la CI et le diff de chaque PR avant fusion.
+Le bot est limité à ce périmètre. Les images des runners, les outils et lockfiles mise, la version et l'empreinte de l'installateur mise, les commits shell, APT et Codex restent dans les parcours de maintenance explicites de ce document. Renovate ne lance pas `updateall` sur le poste. Il ouvre au plus deux PR simultanément, dans la fenêtre du lundi avant 8 h, heure de Paris ; le passage effectif dépend du service. Toutes les fusions restent manuelles, après relecture du diff et réussite des deux contrôles CI. Les mises à jour majeures demandent notamment de lire les notes de version et de vérifier les entrées des actions utilisées.
+
+La configuration seule n'active aucun bot. Pour activer le service sur son dépôt :
+
+1. Ouvrir [l'application GitHub Renovate](https://github.com/apps/renovate), choisir **Install**, puis sélectionner le compte qui possède le dépôt.
+2. Choisir **Only select repositories** et autoriser uniquement le dépôt cible, ici `wsl-workstation`. Examiner les permissions affichées avant de terminer l'installation.
+3. Vérifier que Renovate accepte la configuration et crée le **Dependency Dashboard** dans les issues. Avec `renovate.json` déjà présent sur `main`, une PR d'onboarding n'est pas nécessairement créée. Consulter [le parcours officiel d'installation](https://docs.renovatebot.com/getting-started/installing-onboarding/) si le service demande une étape supplémentaire.
+4. Contrôler la première PR : seuls les fichiers d'actions ou de workflows attendus doivent changer, les références doivent rester verrouillées par SHA et la CI doit réussir sur le commit proposé. Une absence de PR immédiate peut simplement correspondre à la fenêtre hebdomadaire ou à des dépendances déjà à jour ; vérifier le Dashboard avant de conclure à un échec.
+
+Pour désactiver le service, retirer ce dépôt de la sélection de l'application dans les paramètres GitHub du compte. Le poste conserve son fonctionnement habituel.
+
+Avant de proposer un changement de configuration, exécuter [le validateur officiel](https://docs.renovatebot.com/config-validation/) depuis la racine du dépôt. La commande suivante télécharge le validateur dans le cache npm, sans installation globale ; elle nécessite Node.js, npm et un accès réseau :
+
+```bash
+npx --yes --package renovate -- renovate-config-validator --strict
+```
+
+Examiner aussi les règles de périmètre : une configuration syntaxiquement valide peut autoriser des mises à jour non souhaitées. Le validateur est un contrôle ponctuel de maintenance ; il n'est pas nécessaire pour utiliser la workstation.
 
 ## Publication
 

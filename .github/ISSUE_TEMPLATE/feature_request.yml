@@ -1,0 +1,28 @@
+name: Proposer une évolution
+description: Expliquer un besoin et le comportement souhaité.
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Consulter les issues existantes et [le guide de contribution](https://github.com/m4rise/wsl-workstation/blob/main/CONTRIBUTING.md).
+        Utiliser des exemples fictifs, sans secret ni donnée personnelle.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Besoin rencontré
+      description: Décrire le cas d'usage et la limite du parcours actuel.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Comportement souhaité
+      description: Décrire un résultat observable, avec un exemple si possible.
+    validations:
+      required: true
+  - type: textarea
+    id: compatibility
+    attributes:
+      label: Compatibilité et alternatives
+      description: Préciser les effets possibles sur les postes déjà installés et le profil générique. Indiquer les solutions déjà essayées ou les contraintes connues.

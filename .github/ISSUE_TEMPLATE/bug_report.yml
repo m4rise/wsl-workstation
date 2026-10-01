@@ -1,0 +1,44 @@
+name: Signaler un bug
+description: Décrire un problème reproductible sur le parcours documenté.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        La cible prise en charge est Ubuntu 26.04 sous WSL2, en x86-64.
+        Retirer des extraits les jetons, clés, identités, chemins personnels et noms de comptes.
+        Pour une vulnérabilité, utiliser le [signalement privé](https://github.com/m4rise/wsl-workstation/security/advisories/new).
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environnement
+      description: Indiquer la distribution, la version de WSL et de mise, le SHA du dépôt et les capacités activées. Ne pas joindre les fichiers de configuration personnels.
+      placeholder: "Ubuntu 26.04 / WSL2 / x86-64 ; mise … ; commit … ; profil générique ou capacités …"
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Étapes pour reproduire
+      description: Indiquer les commandes exécutées et la section de documentation suivie, avec des données fictives.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Comportement attendu
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Comportement observé
+      description: Donner le message d'erreur et préciser si le problème survient au premier bootstrap, au second passage ou lors de la maintenance.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Extrait de diagnostic facultatif
+      description: Joindre uniquement les lignes utiles, après anonymisation. Ne pas copier un environnement complet, un bundle privé ou une configuration d'identité.
+      render: text

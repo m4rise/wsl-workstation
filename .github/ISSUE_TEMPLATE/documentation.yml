@@ -1,0 +1,28 @@
+name: Améliorer la documentation
+description: Signaler une instruction manquante, ambiguë ou incorrecte.
+labels: [documentation]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Le parcours doit pouvoir être suivi sans connaître le poste de l'auteur.
+        Anonymiser les exemples et ne joindre aucun fichier personnel.
+  - type: input
+    id: location
+    attributes:
+      label: Document et section concernés
+      placeholder: "README.md — Installation générique, ou lien vers la section"
+    validations:
+      required: true
+  - type: textarea
+    id: difficulty
+    attributes:
+      label: Difficulté rencontrée
+      description: Expliquer l'instruction suivie, le résultat obtenu et l'information manquante ou incorrecte.
+    validations:
+      required: true
+  - type: textarea
+    id: correction
+    attributes:
+      label: Correction proposée
+      description: Une suggestion de texte ou de commande est bienvenue, même sans PR.
