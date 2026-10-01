@@ -12,6 +12,34 @@ Conserver les personnalisations dans `miserc.toml`, `config.local.toml`, l'ident
 
 Pour intégrer une préférence ou une copie système modifiée, suivre [Configuration](CONFIGURATION.md). Examiner les différences avant de réappliquer le bootstrap, car une copie locale utile pourrait être remplacée. Un lien sain ne prouve pas que les modifications de sa source ont été commitées : vérifier aussi `git status` et `git diff`.
 
+## Utiliser le depot public
+
+Le même clone public peut servir au poste personnel et aux contributions. Les capacités restent choisies dans `miserc.toml`, les paramètres du poste dans `config.local.toml`, et les comptes, clés et préférences personnelles restent locaux. `updateall` conserve son fonctionnement. Configurer l'[identité publique au niveau de ce clone](OPERATIONS.md#identite-git-et-ssh) pour garder l'identité globale des autres projets.
+
+Pour le mainteneur ayant accès en écriture au dépôt, `origin` désigne le projet public. Les autres contributeurs utilisent un fork selon [Contribution](../CONTRIBUTING.md) et [Validation](VALIDATION.md#2-validation-distante-du-bon-commit). Examiner les changements locaux et commencer avec un checkout propre, puis créer une branche adaptée au changement :
+
+```bash
+git remote -v
+git status --short
+git switch main
+git pull --ff-only
+git switch -c docs/mon-changement
+```
+
+Effectuer le changement, suivre les contrôles et la revue de l'index dans [Validation](VALIDATION.md#2-validation-distante-du-bon-commit), puis pousser la branche et ouvrir une PR. La protection de `main` impose ce parcours au mainteneur aussi. Attendre les deux jobs `checks` et `bootstrap-wsl` sur le bon commit, relire le diff et fusionner la PR sur GitHub. Après fusion, avec un checkout propre :
+
+```bash
+git switch main
+git pull --ff-only
+git status --short
+mise run workstation:config-audit --check
+mise run workstation:doctor
+```
+
+Si la PR change des ressources à provisionner, examiner les différences locales avant d'appliquer `mise bootstrap --locked`, puis refaire les contrôles. Une nouvelle version d'outil peut demander `mise install --locked`. `git pull` récupère les sources ; il n'applique pas le provisionnement.
+
+Pour remplacer un ancien bootstrap privé déjà installé, partir de l'historique neuf du public et conserver une archive privée vérifiée pour le retour arrière. Comparer les contenus versionnés et préserver le chemin du checkout, les fichiers locaux et les liens avant toute bascule. L'ancien historique reste dans l'archive privée : changer seulement l'URL d'un ancien clone conserverait ses commits privés. Valider le poste avant de supprimer l'ancien dépôt GitHub. Le dépôt de sauvegarde chiffrée, s'il est utilisé, reste distinct et privé.
+
 ## Versions et changements
 
 Les commandes quotidiennes `updateall` et `devupdate` conservent leur fonctionnement : mise, outils, dépôts shell et Codex actif sont mis à jour. Elles peuvent changer les lockfiles ; examiner ces changements avant commit. Elles ne capturent aucune configuration et ne font aucun commit/push.

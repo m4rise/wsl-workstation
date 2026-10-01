@@ -69,7 +69,31 @@ git config --file "$HOME/.config/git/identity.conf" commit.gpgsign true
 git config --file "$HOME/.config/git/identity.conf" tag.gpgSign true
 ```
 
-Pour les contributions publiques, utiliser l'adresse *noreply* fournie dans les paramètres GitHub et une **clé de signature distincte**, enregistrée avec `gh ssh-key add --type signing`. Configurer cette identité au niveau du dépôt public ou avec un `includeIf` Git local. Ne pas réutiliser automatiquement ton adresse privée pour son premier commit.
+Pour les contributions publiques, utiliser l'adresse *noreply* fournie dans les paramètres GitHub. Depuis le clone public, saisir le pseudo public puis cette adresse, une entrée par ligne, et configurer uniquement ce dépôt :
+
+```bash
+read -r public_name
+read -r public_email
+git config --local user.name "$public_name"
+git config --local user.email "$public_email"
+unset public_name public_email
+```
+
+Une clé dédiée à la signature est recommandée ; une clé SSH existante peut aussi signer si sa partie publique est enregistrée comme **Signing Key** sur GitHub. L'ajout se fait dans les paramètres SSH and GPG keys du compte, ou avec `gh ssh-key add CHEMIN_CLE_PUBLIQUE --type signing` si la CLI dispose du droit correspondant. Voir [la procédure GitHub](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account).
+
+Pour activer la signature uniquement dans ce clone, saisir le chemin absolu de la clé publique choisie, puis exécuter :
+
+```bash
+read -r signing_public_key
+test -f "$signing_public_key"
+git config --local gpg.format ssh
+git config --local user.signingkey "$signing_public_key"
+git config --local commit.gpgsign true
+git config --local tag.gpgSign true
+unset signing_public_key
+```
+
+Charger la clé correspondante dans l'agent SSH depuis son terminal pour signer sans saisir la phrase secrète dans un autre outil. Ces commandes locales conservent l'identité globale des autres projets ; un `includeIf` Git local peut également servir à plusieurs clones publics. Ne pas réutiliser automatiquement ton adresse privée pour le premier commit public.
 
 ## Bundle prive
 
