@@ -26,7 +26,19 @@ git pull --ff-only
 git switch -c docs/mon-changement
 ```
 
-Effectuer le changement, suivre les contrôles et la revue de l'index dans [Validation](VALIDATION.md#2-validation-distante-du-bon-commit), puis pousser la branche et ouvrir une PR. La protection de `main` impose ce parcours au mainteneur aussi. Attendre les deux jobs `checks` et `bootstrap-wsl` sur le bon commit, relire le diff et fusionner la PR sur GitHub. Après fusion, avec un checkout propre :
+Effectuer le changement, suivre les contrôles et la revue de l'index dans [Validation](VALIDATION.md#2-validation-distante-du-bon-commit), puis pousser la branche et ouvrir une PR. La protection de `main` impose ce parcours au mainteneur aussi. Attendre les deux jobs `checks` et `bootstrap-wsl` sur le bon commit et relire le diff.
+
+Pour fusionner avec la CLI depuis cette branche, saisir le numéro de PR. L'identité locale doit déjà utiliser l'adresse noreply : l'option ci-dessous la transmet aussi pour le commit de fusion créé sur GitHub et exige le commit local exact. Une fusion via l'interface web utilise les [préférences d'adresse du compte GitHub](https://docs.github.com/en/account-and-profile/how-tos/email-preferences/setting-your-commit-email-address), à vérifier séparément.
+
+```bash
+read -r pr_number
+gh pr merge "$pr_number" --merge \
+  --author-email "$(git config --get user.email)" \
+  --match-head-commit "$(git rev-parse HEAD)"
+unset pr_number
+```
+
+Après fusion, avec un checkout propre :
 
 ```bash
 git switch main
