@@ -1,0 +1,25 @@
+# Temporary / backup files
+*.bak
+*.backup
+*.orig
+*.tmp
+*~
+config.toml.before-*
+
+# Machine-local mise overrides
+*.local.toml
+
+# OS/editor noise
+.DS_Store
+
+# Local capability selector and private recovery material
+/miserc.toml
+*.local.lock
+.env
+fnox.toml
+*.kdbx
+*.key
+age.txt
+/public-export/
+__pycache__/
+.ruff_cache/

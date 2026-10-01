@@ -1,0 +1,4 @@
+# Example only: merge chosen preferences into the existing user configuration.
+# Keep project paths, trust decisions and authentication local.
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"

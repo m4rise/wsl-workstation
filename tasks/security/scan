@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+#MISE description="Scan an explicitly chosen project for high/critical vulnerabilities and misconfiguration"
+set -euo pipefail
+if [[ $# != 1 || ! -d "$1" ]]; then
+    echo "Usage: mise run security:scan /path/to/project" >&2
+    exit 2
+fi
+exec trivy fs --scanners vuln,misconfig --severity HIGH,CRITICAL --exit-code 1 --skip-dirs .git "$1"

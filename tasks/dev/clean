@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+#MISE description="Inspect obsolete mise installations and clean safe caches"
+
+set -euo pipefail
+
+echo
+echo "==> Checking unused mise installations..."
+mise prune --dry-run
+
+echo
+echo "==> Pruning mise cache..."
+mise cache prune
+
+echo
+echo "==> Development cleanup complete."
+echo "    Run 'mise prune' manually if you want to remove reported installations."

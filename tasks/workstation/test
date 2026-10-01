@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+#MISE description="Test capability selection and encrypted recovery with disposable fixtures"
+set -euo pipefail
+repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
+if (($# > 0)); then
+    echo "Usage: mise -E secrets run workstation:test" >&2
+    exit 2
+fi
+for tool in mise git ssh-keygen age age-keygen fnox gitleaks; do
+    if ! command -v "$tool" >/dev/null 2>&1; then
+        echo "Missing test prerequisite: $tool" >&2
+        echo "Install the test tools: mise -E secrets install --locked" >&2
+        echo "Then run: mise -E secrets run workstation:test" >&2
+        exit 2
+    fi
+done
+export PYTHONDONTWRITEBYTECODE=1
+exec python3 -m unittest discover -s "$repo_root/tests" -v

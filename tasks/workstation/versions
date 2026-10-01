@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+#MISE description="Display workstation component versions"
+
+set -euo pipefail
+
+section() {
+    printf '\n==> %s\n' "$1"
+}
+
+section "System"
+
+# shellcheck disable=SC1091
+. /etc/os-release
+
+printf '  %-20s %s\n' "Ubuntu" "${PRETTY_NAME}"
+printf '  %-20s %s\n' "Kernel" "$(uname -r)"
+printf '  %-20s %s\n' "WSL" "$(uname -a | grep -qi microsoft && echo yes || echo no)"
+
+section "Core"
+
+printf '  %-20s %s\n' "mise" "$(mise --version)"
+printf '  %-20s %s\n' "zsh" "$(zsh --version)"
+printf '  %-20s %s\n' "git" "$(git --version)"
+printf '  %-20s %s\n' "OpenSSH" "$(ssh -V 2>&1)"
+printf '  %-20s %s\n' "GnuPG" "$(gpg --version | head -n1)"
+if [[ "${WORKSTATION_CLOUD:-0}" == 1 ]]; then
+    printf '  %-20s %s\n' "gcloud" "$(gcloud version --format='value(Google Cloud SDK)' 2>/dev/null || gcloud version | head -n1)"
+fi
+if [[ "${WORKSTATION_CODEX:-0}" == 1 ]]; then
+    printf '  %-20s %s\n' "Codex" "$(codex --version)"
+fi
+
+section "mise-managed tools"
+
+mise ls
+
+if [[ "${WORKSTATION_DOCKER:-0}" == 1 ]]; then
+    section "Docker"
+
+    docker_path="$(command -v docker 2>/dev/null || true)"
+
+    if [[ -z "$docker_path" ]]; then
+        printf '  %-20s %s\n' "Docker" "unavailable"
+    elif [[ "$docker_path" == /mnt/* ]]; then
+        printf '  %-20s %s\n' "Docker" "WSL integration unavailable"
+        printf '  %-20s %s\n' "Windows CLI" "$docker_path"
+    elif docker info >/dev/null 2>&1; then
+        printf '  %-20s %s\n' "Client" "$(docker version --format '{{.Client.Version}}')"
+        printf '  %-20s %s\n' "Server" "$(docker version --format '{{.Server.Version}}')"
+
+        if docker compose version >/dev/null 2>&1; then
+            printf '  %-20s %s\n' "Compose" "$(docker compose version --short)"
+        else
+            printf '  %-20s %s\n' "Compose" "unavailable"
+        fi
+    else
+        printf '  %-20s %s\n' "Docker" "daemon unavailable"
+    fi
+
+fi
+
+section "Shell tooling"
+
+printf '  %-20s %s\n' "Oh My Zsh" "$(git -C "$HOME/.oh-my-zsh" rev-parse --short HEAD)"
+printf '  %-20s %s\n' "Powerlevel10k" "$(git -C "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k" rev-parse --short HEAD)"
+
+printf '\n'

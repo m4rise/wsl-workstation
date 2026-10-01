@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+#MISE description="Update Ubuntu packages and remove obsolete packages"
+
+set -euo pipefail
+
+upgrade_ubuntu() {
+    local attempt
+
+    for attempt in 1 2 3; do
+        echo
+        echo "==> Updating APT metadata (${attempt}/3)..."
+        sudo apt update
+
+        echo
+        echo "==> Performing full Ubuntu upgrade..."
+
+        if sudo apt \
+            -o Acquire::Retries=5 \
+            full-upgrade -y; then
+            return 0
+        fi
+
+        if ((attempt < 3)); then
+            echo
+            echo "==> Upgrade failed; refreshing metadata before retry..."
+            sudo apt clean
+            sleep 5
+        fi
+    done
+
+    echo
+    echo "ERROR: Ubuntu upgrade failed after 3 attempts." >&2
+    return 1
+}
+
+upgrade_ubuntu
+
+echo
+echo "==> Removing obsolete packages..."
+sudo apt autoremove --purge -y
+
+echo
+echo "==> Cleaning APT cache..."
+sudo apt clean
+
+echo
+echo "==> Ubuntu update complete."

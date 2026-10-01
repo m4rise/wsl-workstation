@@ -1,0 +1,20 @@
+[bootstrap.packages]
+"apt:google-cloud-cli" = "latest"
+
+[bootstrap.files."/usr/share/keyrings/cloud.google.asc"]
+source = "system/apt/google-cloud/cloud.google.asc"
+owner = "root"
+group = "root"
+mode = "0644"
+phase = "pre-packages"
+
+[bootstrap.files."/etc/apt/sources.list.d/google-cloud-sdk.list"]
+source = "system/apt/google-cloud/google-cloud-sdk.list"
+owner = "root"
+group = "root"
+mode = "0644"
+phase = "pre-packages"
+
+
+[env]
+WORKSTATION_CLOUD = "1"

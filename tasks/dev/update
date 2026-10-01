@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+#MISE description="Update development tooling"
+
+set -euo pipefail
+
+echo
+echo "==> Updating mise..."
+mise self-update -y
+
+echo
+echo "==> Updating mise-managed tools..."
+mise upgrade --prune
+
+echo
+echo "==> Updating shell tooling..."
+mise run shell:update
+
+if [[ "${WORKSTATION_CODEX:-0}" == 1 ]]; then
+    echo
+    echo "==> Updating Codex..."
+    mise run codex:update
+fi
+
+echo
+echo "==> Development tooling update complete."

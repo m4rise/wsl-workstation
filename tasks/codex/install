@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+#MISE description="Install Codex CLI when missing"
+
+set -euo pipefail
+repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
+# shellcheck source=scripts/capabilities.sh
+source "$repo_root/scripts/capabilities.sh"
+workstation_require codex
+
+codex_bin="$HOME/.local/bin/codex"
+
+if [[ -x "$codex_bin" ]]; then
+    echo
+    echo "==> Codex CLI already installed:"
+    "$codex_bin" --version
+    exit 0
+fi
+
+mise run codex:update

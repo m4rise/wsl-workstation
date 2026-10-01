@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+#MISE description="Install or update Codex CLI using the official OpenAI installer"
+
+set -euo pipefail
+repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
+# shellcheck source=scripts/capabilities.sh
+source "$repo_root/scripts/capabilities.sh"
+workstation_require codex
+
+codex_bin="$HOME/.local/bin/codex"
+installer="$(mktemp)"
+
+cleanup() {
+    rm -f "$installer"
+}
+
+trap cleanup EXIT
+
+echo
+echo "==> Installing/updating Codex CLI..."
+
+curl -fsSL \
+    https://chatgpt.com/codex/install.sh \
+    -o "$installer"
+
+CODEX_NON_INTERACTIVE=1 sh "$installer"
+
+if [[ ! -x "$codex_bin" ]]; then
+    echo "ERROR: Codex was not installed at $codex_bin" >&2
+    exit 1
+fi
+
+echo
+echo "==> Codex CLI ready:"
+"$codex_bin" --version

@@ -1,0 +1,117 @@
+#!/usr/bin/env bash
+#MISE description="Lint workstation configuration and maintenance scripts"
+
+set -euo pipefail
+
+repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
+
+echo
+echo "==> Validating mise tasks..."
+mise tasks validate --errors-only
+
+echo
+echo "==> Discovering Bash scripts..."
+
+bash_files=()
+
+while IFS= read -r -d '' file; do
+    if head -n1 "$file" | grep -q 'bash'; then
+        bash_files+=("$file")
+    fi
+done < <(
+    find "$repo_root/tasks" "$repo_root/system" "$repo_root/scripts" "$repo_root/.github/scripts" \
+        -type f \
+        -print0
+)
+
+# Validate the deployed WSL workaround as well when it exists on this machine.
+wsl_interop_script="/usr/local/sbin/ensure-wsl-interop"
+
+if [[ -f "$wsl_interop_script" ]]; then
+    bash_files+=("$wsl_interop_script")
+fi
+
+if ((${#bash_files[@]} > 0)); then
+    printf '  Found %d Bash scripts\n' "${#bash_files[@]}"
+else
+    echo "ERROR: no Bash workstation scripts found." >&2
+    exit 1
+fi
+
+echo
+echo "==> Running ShellCheck..."
+(cd "$repo_root" && shellcheck -x "${bash_files[@]}")
+
+echo
+echo "==> Checking Bash formatting..."
+shfmt \
+    -d \
+    -i 4 \
+    -ln bash \
+    "${bash_files[@]}"
+
+echo
+echo "==> Checking Zsh syntax..."
+
+zsh_files=(
+    "$repo_root/dotfiles/.zshenv"
+    "$repo_root/dotfiles/.zprofile"
+    "$repo_root/dotfiles/.zshrc"
+    "$repo_root/dotfiles/.p10k.zsh"
+    "$repo_root/tests/check-shell.zsh"
+)
+
+for file in "${zsh_files[@]}"; do
+    if [[ -f "$file" ]]; then
+        echo "  $file"
+        zsh -n "$file"
+    fi
+done
+
+echo
+echo "==> Checking TOML..."
+toml_files=("$repo_root/config.toml" "$repo_root/ruff.toml")
+for file in "$repo_root"/config.*.toml; do
+    [[ "$file" == *.local.toml ]] || toml_files+=("$file")
+done
+while IFS= read -r -d '' file; do
+    toml_files+=("$file")
+done < <(find "$repo_root/examples" -type f -name '*.toml' -print0)
+taplo check "${toml_files[@]}" "$repo_root"/mise*.lock
+taplo fmt --check "${toml_files[@]}"
+
+echo
+echo "==> Checking Python style and formatting..."
+ruff check --no-cache "$repo_root/scripts" "$repo_root/tests"
+ruff format --check --no-cache "$repo_root/scripts" "$repo_root/tests"
+
+echo
+echo "==> Checking metadata and examples..."
+PYTHONDONTWRITEBYTECODE=1 python3 "$repo_root/scripts/bootstrap_metadata.py"
+python3 - "$repo_root" <<'PY'
+import ast
+import json
+from pathlib import Path
+import sys
+for directory in ("scripts", "tests"):
+    for file in (Path(sys.argv[1]) / directory).glob("*.py"):
+        ast.parse(file.read_text(), filename=str(file))
+root = Path(sys.argv[1])
+for file in [root / "renovate.json", *(root / "examples").rglob("*.json"), *(root / "system").rglob("*.json")]:
+    json.loads(file.read_text())
+PY
+
+echo
+echo "==> Checking GitHub Actions..."
+(cd "$repo_root" && actionlint .github/workflows/quality.yml)
+
+echo
+echo "==> Checking local documentation links and anchors..."
+lychee --offline --include-fragments=anchor-only \
+    "$repo_root/README.md" \
+    "$repo_root/CONTRIBUTING.md" \
+    "$repo_root/SECURITY.md" \
+    "$repo_root"/docs/*.md
+
+echo
+echo "==> Workstation configuration lint passed."

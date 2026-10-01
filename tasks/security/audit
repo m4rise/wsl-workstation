@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+#MISE description="Scan Git history and current files for secrets"
+
+set -euo pipefail
+
+repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
+
+echo
+echo "==> Scanning complete Git history for secrets..."
+gitleaks git --redact --log-opts="--all --full-history" "$repo_root"
+
+echo
+echo "==> Scanning current files for secrets..."
+gitleaks dir --redact "$repo_root"
+
+echo
+echo "==> Secret scan passed."

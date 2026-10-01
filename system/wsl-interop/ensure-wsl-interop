@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+entry=/proc/sys/fs/binfmt_misc/WSLInterop
+register=/proc/sys/fs/binfmt_misc/register
+
+# Already healthy.
+[[ -e "$entry" ]] && exit 0
+
+# Restore Windows PE (MZ) dispatch through WSL /init.
+printf ':WSLInterop:M::MZ::/init:P\n' >"$register"

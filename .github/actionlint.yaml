@@ -1,0 +1,6 @@
+# actionlint 1.7.12 predates GitHub's hosted ubuntu-26.04 runner label.
+# Remove this exception when the locked actionlint version recognizes it.
+paths:
+  .github/workflows/quality.yml:
+    ignore:
+      - '^label "ubuntu-26\.04" is unknown\.'

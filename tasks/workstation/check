@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+#MISE description="Run lint, secret scan and disposable recovery tests in order"
+set -euo pipefail
+if (($# > 0)); then
+    echo "Usage: mise run workstation:check" >&2
+    exit 2
+fi
+mise run workstation:lint
+mise run security:audit
+mise -E secrets run workstation:test

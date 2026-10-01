@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+#MISE description="Finalize and validate workstation bootstrap"
+
+set -euo pipefail
+
+if [[ "${WORKSTATION_CODEX:-0}" == 1 ]]; then
+    echo "==> Ensuring Codex CLI..."
+    mise run codex:install
+fi
+
+echo
+echo "==> Ensuring machine-local Git configuration..."
+
+if [[ ! -e "$HOME/.gitconfig" ]]; then
+    touch "$HOME/.gitconfig"
+    chmod 600 "$HOME/.gitconfig"
+fi
+
+echo
+echo "==> Validating workstation configuration..."
+mise run workstation:lint
+
+echo
+echo "==> Workstation bootstrap complete."
+
+echo "Configure your local Git identity: see docs/OPERATIONS.md"
+if [[ "${WORKSTATION_GITHUB:-0}" == 1 ]]; then
+    echo "GitHub: gh auth login --hostname github.com --web --git-protocol https"
+    echo "Restore or create your SSH key, then run sshunlock."
+fi
+if [[ "${WORKSTATION_SECRETS:-0}" == 1 ]]; then
+    echo "Optional personal recovery: mise run secrets:restore --help"
+fi
+if [[ "${WORKSTATION_CLOUD:-0}" == 1 ]]; then
+    echo "Google Cloud: gcloud auth login (and application-default login when needed)"
+fi
+if [[ "${WORKSTATION_CODEX:-0}" == 1 ]]; then
+    echo "Codex: codex login"
+fi
+if [[ "${WORKSTATION_DOCKER:-0}" == 1 ]]; then
+    echo "Enable Docker Desktop WSL integration in Windows."
+fi
+echo "Open a fresh shell: exec zsh -l; then run devdoctor."

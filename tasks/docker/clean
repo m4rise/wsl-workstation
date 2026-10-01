@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+#MISE description="Clean unused Docker resources without removing volumes"
+
+set -euo pipefail
+repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
+# shellcheck source=scripts/capabilities.sh
+source "$repo_root/scripts/capabilities.sh"
+workstation_require docker
+
+echo
+echo "==> Current Docker disk usage..."
+docker system df
+
+echo
+echo "==> Pruning unused Docker resources..."
+docker system prune --all
+
+echo
+echo "==> Final Docker disk usage..."
+docker system df
+
+echo
+echo "==> Optional deeper cleanup"
+echo
+echo "Remove unused anonymous volumes as well:"
+echo "  docker system prune --all --volumes"
+echo
+echo "Remove ALL unused volumes, including named volumes:"
+echo "  docker volume prune --all"
+echo
+echo "WARNING: named volumes may contain databases, uploads or other persistent data."

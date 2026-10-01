@@ -1,0 +1,2 @@
+# The repository is installed inside Linux/WSL, even when checked out on Windows.
+* text=auto eol=lf

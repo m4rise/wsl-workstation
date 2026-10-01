@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+#MISE description="Update Oh My Zsh, Powerlevel10k and custom Zsh plugins"
+
+set -euo pipefail
+
+repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
+python3 "$repo_root/scripts/shell-repos.py" prepare-update
+
+echo
+echo "==> Updating Oh My Zsh..."
+if [[ -n "$(git -C "$HOME/.oh-my-zsh" status --porcelain)" ]] ||
+    ! git -C "$HOME/.oh-my-zsh" symbolic-ref -q HEAD >/dev/null; then
+    echo "Skipping modified or detached Oh My Zsh; inspect it before updating."
+else
+    zsh "$HOME/.oh-my-zsh/tools/upgrade.sh"
+fi
+
+echo
+echo "==> Updating Powerlevel10k and custom Zsh plugins..."
+mise bootstrap repos update \
+    --yes \
+    --skip-dirty \
+    "$HOME/.oh-my-zsh/custom/themes/powerlevel10k" \
+    "$HOME/.oh-my-zsh/custom/plugins/fzf-tab" \
+    "$HOME/.oh-my-zsh/custom/plugins/zsh-autosuggestions" \
+    "$HOME/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting"
+
+echo
+echo "==> Shell tooling update complete."

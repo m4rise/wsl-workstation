@@ -1,0 +1,322 @@
+#!/usr/bin/env bash
+#MISE description="Validate workstation tooling and integrations"
+
+set -uo pipefail
+
+bootstrap_only=0
+if [[ "${1:-}" == --bootstrap && $# == 1 ]]; then
+    bootstrap_only=1
+elif (($# > 0)); then
+    echo "Usage: workstation:doctor [--bootstrap]" >&2
+    exit 2
+fi
+
+failures=0
+warnings=0
+
+section() {
+    printf '\n==> %s\n' "$1"
+}
+
+ok() {
+    printf '  [OK] %s\n' "$1"
+}
+
+warn() {
+    printf '  [WARN] %s\n' "$1"
+    warnings=$((warnings + 1))
+}
+
+fail() {
+    printf '  [FAIL] %s\n' "$1"
+    failures=$((failures + 1))
+}
+
+check_command() {
+    local command_name="$1"
+
+    if command -v "$command_name" >/dev/null 2>&1; then
+        ok "$command_name -> $(command -v "$command_name")"
+    else
+        fail "$command_name not found"
+    fi
+}
+
+section "Core commands"
+
+for command_name in \
+    mise \
+    git \
+    zsh \
+    ssh \
+    jq \
+    make \
+    openssl \
+    mkcert; do
+    check_command "$command_name"
+done
+
+section "mise-managed tools"
+
+tool_pairs=(
+    "node|node"
+    "pnpm|pnpm"
+    "fzf|fzf"
+    "bat|bat"
+    "ripgrep|rg"
+    "fd|fd"
+    "delta|delta"
+    "difftastic|difft"
+    "shellcheck|shellcheck"
+    "shfmt|shfmt"
+    "yq|yq"
+    "actionlint|actionlint"
+    "trivy|trivy"
+    "gitleaks|gitleaks"
+    "lychee|lychee"
+    "taplo|taplo"
+    "ruff|ruff"
+    "zoxide|zoxide"
+    "hyperfine|hyperfine"
+    "eza|eza"
+    "dua|dua"
+)
+
+if [[ "${WORKSTATION_GITHUB:-0}" == 1 ]]; then
+    tool_pairs+=("github:cli/cli|gh" "github:danielrobbins/keychain|keychain")
+fi
+if [[ "${WORKSTATION_SECRETS:-0}" == 1 ]]; then
+    tool_pairs+=("github:jdx/fnox|fnox" "age|age")
+fi
+if [[ "${WORKSTATION_VAULT:-0}" == 1 ]]; then
+    check_command keepassxc-cli
+fi
+if [[ "${WORKSTATION_CLOUD:-0}" == 1 ]]; then
+    check_command gcloud
+fi
+
+for pair in "${tool_pairs[@]}"; do
+    tool="${pair%%|*}"
+    binary="${pair##*|}"
+
+    mise_path="$(mise which "$binary" 2>/dev/null || true)"
+    command_path="$(command -v "$binary" 2>/dev/null || true)"
+
+    if [[ -z "$mise_path" ]]; then
+        fail "$binary ($tool) is not resolved by mise"
+        continue
+    fi
+
+    if [[ -z "$command_path" ]]; then
+        fail "$binary is not available in PATH"
+        continue
+    fi
+
+    if [[ "$mise_path" == "$command_path" ]]; then
+        ok "$tool -> $mise_path"
+    else
+        warn "$tool resolved by mise at $mise_path, but PATH uses $command_path"
+    fi
+done
+
+section "mise state"
+
+prunable="$(mise ls --prunable 2>/dev/null || true)"
+
+if [[ -z "$prunable" ]]; then
+    ok "No prunable mise installations"
+else
+    warn "mise has prunable installations:"
+    printf '%s\n' "$prunable" | sed 's/^/         /'
+fi
+
+section "PATH"
+
+duplicates="$(
+    printf '%s' "$PATH" |
+        tr ':' '\n' |
+        sed '/^$/d' |
+        sort |
+        uniq -d
+)"
+
+if [[ -z "$duplicates" ]]; then
+    ok "No duplicate PATH entries"
+else
+    warn "Duplicate PATH entries detected:"
+    printf '%s\n' "$duplicates" | sed 's/^/         /'
+fi
+
+section "Git"
+
+managed_git_config="$HOME/.config/git/config"
+machine_git_config="$HOME/.gitconfig"
+
+if [[ "$(git config --file "$managed_git_config" --bool --get rerere.enabled 2>/dev/null || true)" == "true" ]]; then
+    ok "Git rerere is enabled in the managed configuration"
+else
+    warn "Git rerere is missing from the managed configuration"
+fi
+
+if [[ "$(git config --file "$managed_git_config" --get core.pager 2>/dev/null || true)" == "delta" ]]; then
+    ok "Git pager uses delta"
+else
+    warn "Git core.pager is not delta"
+fi
+
+if [[ "$(git config --file "$managed_git_config" --get interactive.diffFilter 2>/dev/null || true)" == "delta --color-only" ]]; then
+    ok "Interactive Git diff uses delta --color-only"
+else
+    warn "Git interactive.diffFilter is not configured for delta"
+fi
+
+if git config --file "$managed_git_config" --get diff.external >/dev/null 2>&1; then
+    fail "Managed Git config defines diff.external; this may interfere with agents or VS Code"
+elif [[ -f "$machine_git_config" ]] &&
+    git config --file "$machine_git_config" --get diff.external >/dev/null 2>&1; then
+    fail "Machine Git config defines diff.external; this may interfere with agents or VS Code"
+else
+    ok "No global external diff configured"
+fi
+
+for alias_name in ddiff dshow dlog; do
+    if git config --file "$managed_git_config" --get "alias.$alias_name" >/dev/null 2>&1; then
+        ok "Git alias '$alias_name' configured"
+    else
+        warn "Git alias '$alias_name' missing"
+    fi
+done
+
+if [[ "${WORKSTATION_GITHUB:-0}" == 1 && "$bootstrap_only" == 0 ]]; then
+    section "SSH / Keychain"
+
+    if keychain inspect >/dev/null 2>&1; then
+        ok "Keychain operational"
+    else
+        fail "Keychain inspection failed"
+    fi
+
+    if ssh-add -l >/dev/null 2>&1; then
+        ok "SSH agent has at least one loaded key"
+    else
+        fail "No SSH key available through the active agent"
+    fi
+
+    ssh_output="$(
+        ssh \
+            -T \
+            -o BatchMode=yes \
+            -o ConnectTimeout=5 \
+            git@github.com 2>&1 || true
+    )"
+
+    if grep -qi 'successfully authenticated' <<<"$ssh_output"; then
+        ok "GitHub SSH authentication"
+    else
+        warn "GitHub SSH authentication could not be confirmed"
+    fi
+
+    section "GitHub CLI"
+
+    if gh auth status >/dev/null 2>&1; then
+        ok "GitHub CLI authenticated"
+    else
+        warn "GitHub CLI authentication could not be confirmed"
+    fi
+
+fi
+
+if [[ "${WORKSTATION_CLOUD:-0}" == 1 && "$bootstrap_only" == 0 ]]; then
+    section "Google Cloud"
+
+    gcloud_account="$(
+        gcloud auth list \
+            --filter=status:ACTIVE \
+            --format='value(account)' \
+            2>/dev/null |
+            head -n1
+    )"
+
+    if [[ -n "$gcloud_account" ]]; then
+        ok "Google Cloud has an active account"
+    else
+        warn "No active Google Cloud account"
+    fi
+
+fi
+
+if [[ "${WORKSTATION_WSL:-0}" == 1 ]]; then
+    section "WSL interoperability"
+
+    if [[ -e /proc/sys/fs/binfmt_misc/WSLInterop ]]; then
+        ok "WSLInterop handler registered"
+    else
+        fail "WSLInterop handler missing"
+    fi
+
+    windows_cmd="$(command -v cmd.exe 2>/dev/null || true)"
+    if [[ -z "$windows_cmd" && -x /mnt/c/Windows/System32/cmd.exe ]]; then
+        # Login shells created through runuser can omit Windows paths even
+        # though WSL interoperability and the Windows mount are healthy.
+        windows_cmd=/mnt/c/Windows/System32/cmd.exe
+    fi
+
+    if [[ -n "$windows_cmd" ]] && "$windows_cmd" /c ver >/dev/null 2>&1; then
+        ok "Windows executable interoperability"
+    else
+        fail "Cannot execute Windows binaries from WSL"
+    fi
+
+    if systemctl is-active --quiet wsl-interop-fix.timer 2>/dev/null; then
+        ok "Temporary WSLInterop workaround timer active"
+    else
+        warn "WSLInterop workaround timer inactive or absent"
+    fi
+
+fi
+
+if [[ "${WORKSTATION_DOCKER:-0}" == 1 && "$bootstrap_only" == 0 ]]; then
+    section "Docker Desktop"
+
+    docker_path="$(command -v docker 2>/dev/null || true)"
+
+    if [[ -z "$docker_path" ]]; then
+        warn "Docker CLI unavailable"
+    elif [[ "$docker_path" == /mnt/* ]]; then
+        warn "Windows Docker CLI visible, but WSL integration is unavailable"
+    elif docker info >/dev/null 2>&1; then
+        ok "Docker daemon reachable through WSL integration"
+
+        if docker compose version >/dev/null 2>&1; then
+            ok "Docker Compose available"
+        else
+            fail "Docker Compose unavailable"
+        fi
+    else
+        warn "Docker CLI available but Docker daemon unreachable"
+    fi
+
+fi
+
+if [[ "${WORKSTATION_CODEX:-0}" == 1 ]]; then
+    section "Codex"
+
+    if command -v codex >/dev/null 2>&1; then
+        ok "$(codex --version)"
+    else
+        fail "Codex CLI unavailable"
+    fi
+
+fi
+
+section "Summary"
+
+printf '  Failures: %d\n' "$failures"
+printf '  Warnings: %d\n' "$warnings"
+
+if ((failures > 0)); then
+    printf '\nWorkstation health check FAILED.\n'
+    exit 1
+fi
+
+printf '\nWorkstation health check PASSED.\n'

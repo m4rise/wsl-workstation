@@ -1,0 +1,27 @@
+[bootstrap.files."/usr/local/sbin/ensure-wsl-interop"]
+source = "system/wsl-interop/ensure-wsl-interop"
+owner = "root"
+group = "root"
+mode = "0755"
+
+[bootstrap.files."/etc/systemd/system/wsl-interop-fix.service"]
+source = "system/wsl-interop/wsl-interop-fix.service"
+owner = "root"
+group = "root"
+mode = "0644"
+
+[bootstrap.files."/etc/systemd/system/wsl-interop-fix.timer"]
+source = "system/wsl-interop/wsl-interop-fix.timer"
+owner = "root"
+group = "root"
+mode = "0644"
+notify = ["wsl-interop-fix.timer"]
+
+[bootstrap.services."wsl-interop-fix.timer"]
+state = "running"
+enabled = true
+on_change = "restart"
+
+
+[env]
+WORKSTATION_WSL = "1"

@@ -1,0 +1,94 @@
+min_version = "2026.9.13"
+
+[tools]
+node = "24"
+pnpm = "12"
+fzf = "latest"
+bat = "latest"
+ripgrep = "latest"
+fd = "latest"
+delta = "latest"
+shellcheck = "latest"
+shfmt = "latest"
+yq = "latest"
+actionlint = "latest"
+trivy = "latest"
+gitleaks = "latest"
+lychee = "latest"
+taplo = "latest"
+ruff = "latest"
+zoxide = "latest"
+hyperfine = "latest"
+eza = "latest"
+dua = "latest"
+difftastic = "latest"
+
+[settings]
+system_packages.managers = ["apt"]
+lockfile = true
+lockfile_platforms = ["linux-x64"]
+dotfiles.root = "~/.config/mise/dotfiles"
+
+[task_config]
+includes = ["tasks"]
+
+[bootstrap.user]
+login_shell = "/usr/bin/zsh"
+
+[bootstrap.packages]
+"apt:ca-certificates" = "latest"
+"apt:curl" = "latest"
+"apt:git" = "latest"
+"apt:gnupg" = "latest"
+"apt:openssh-client" = "latest"
+"apt:zsh" = "latest"
+"apt:build-essential" = "latest"
+"apt:python3" = "latest"
+"apt:unzip" = "latest"
+"apt:zip" = "latest"
+"apt:jq" = "latest"
+"apt:rsync" = "latest"
+"apt:make" = "latest"
+"apt:openssl" = "latest"
+"apt:mkcert" = "latest"
+"apt:libnss3-tools" = "latest"
+"apt:pinentry-curses" = "latest"
+
+[bootstrap.directories."~/.gnupg"]
+mode = "0700"
+
+[bootstrap.directories."~/.ssh"]
+mode = "0700"
+
+[bootstrap.repos]
+"~/.oh-my-zsh" = { url = "https://github.com/ohmyzsh/ohmyzsh.git" }
+"~/.oh-my-zsh/custom/themes/powerlevel10k" = { url = "https://github.com/romkatv/powerlevel10k.git" }
+"~/.oh-my-zsh/custom/plugins/fzf-tab" = { url = "https://github.com/Aloxaf/fzf-tab.git" }
+"~/.oh-my-zsh/custom/plugins/zsh-autosuggestions" = { url = "https://github.com/zsh-users/zsh-autosuggestions.git" }
+"~/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting" = { url = "https://github.com/zsh-users/zsh-syntax-highlighting.git" }
+
+[tasks.update]
+description = "Update the complete workstation environment"
+run = [
+  { task = "system:update" },
+  { task = "dev:update" },
+  { task = "dev:clean" },
+]
+
+[dotfiles]
+"~/.config/git/config" = { mode = "symlink" }
+"~/.gnupg/gpg-agent.conf" = { mode = "symlink" }
+"~/.p10k.zsh" = { mode = "symlink" }
+"~/.zprofile" = { mode = "symlink" }
+"~/.zshenv" = { mode = "symlink" }
+"~/.zshrc" = { mode = "symlink" }
+
+[env]
+WORKSTATION_GITHUB = "0"
+WORKSTATION_CLOUD = "0"
+WORKSTATION_CODEX = "0"
+WORKSTATION_DOCKER = "0"
+WORKSTATION_WSL = "0"
+WORKSTATION_SECRETS = "0"
+WORKSTATION_VAULT = "0"
+WORKSTATION_SSH_KEY = "{{ env.HOME }}/.ssh/id_ed25519"

@@ -1,0 +1,5 @@
+[output]
+quiet = true
+
+[agent]
+timeout = 720

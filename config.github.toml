@@ -1,0 +1,9 @@
+[tools]
+"github:cli/cli" = "latest"
+"github:danielrobbins/keychain" = { version = "latest", asset_pattern = "keychain-{{ version }}.pyz", bin = "keychain" }
+
+[dotfiles]
+"~/.keychainrc" = { mode = "symlink" }
+
+[env]
+WORKSTATION_GITHUB = "1"

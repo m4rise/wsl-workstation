@@ -1,0 +1,16 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", ":semanticCommits"],
+  "enabledManagers": ["mise", "github-actions"],
+  "timezone": "Europe/Paris",
+  "schedule": ["before 8am on monday"],
+  "automerge": false,
+  "prConcurrentLimit": 3,
+  "ignorePaths": ["examples/**", "**/*.local.toml", "miserc.toml"],
+  "mise": {
+    "managerFilePatterns": ["/^config(?:\\.[^.]+)?\\.toml$/"]
+  },
+  "lockFileMaintenance": {
+    "enabled": true
+  }
+}

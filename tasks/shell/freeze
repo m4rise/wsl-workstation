@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+#MISE description="Record clean shell repository commits for optional reproducible installations"
+set -euo pipefail
+repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
+exec python3 "$repo_root/scripts/shell-repos.py" freeze "$@"

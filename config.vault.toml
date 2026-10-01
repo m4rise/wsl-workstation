@@ -1,0 +1,5 @@
+[bootstrap.packages]
+"apt:keepassxc-full" = "latest"
+
+[env]
+WORKSTATION_VAULT = "1"

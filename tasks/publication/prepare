@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+#MISE description="Prepare a local public export without private history or local settings"
+set -euo pipefail
+repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
+exec python3 "$repo_root/scripts/prepare-public.py" "$@"
