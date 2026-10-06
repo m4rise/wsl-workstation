@@ -35,6 +35,8 @@ La capacité WSL conserve `WORKSTATION_WSL=1` et laisse WSL gérer nativement WS
 
 Lors d'un bootstrap complet, le hook `pre-packages` arrête et désactive le timer legacy, puis mise supprime ses trois artefacts déclarés `state = "absent"` et installe le drop-in. La tâche finale recharge systemd seulement si une des unités concernées le demande, puis efface uniquement l'échec éventuel de `systemd-binfmt.service`. Un second passage ne change plus cet état. Utiliser le bootstrap complet pour cette migration, car `bootstrap files apply` seul ne lance pas ces étapes de cycle de vie. Un futur changement amont pourra permettre de retirer l'override après validation dans la vraie CI WSL, y compris après shutdown.
 
+Les procédures humaines sont regroupées dans [WSL](WSL.md) et [CI locale](CI-LOCAL.md). La variable `wsl_source_dir` résout le chemin depuis le fichier déclarant la capacité ; le hook transmet explicitement son indicateur. Les tests protègent ainsi la configuration globale et la sélection temporaire `-E wsl` avec la version mise utilisée en CI.
+
 Changer de profil modifie l'état désiré des ressources actives. Cela n'autorise pas leur désinstallation automatique. Toute suppression de package ou de service fait l'objet d'une opération explicite.
 
 ## Donnees privees

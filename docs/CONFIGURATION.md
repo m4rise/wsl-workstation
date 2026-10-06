@@ -49,6 +49,8 @@ Les ressources déclarées dans [la capacité WSL](../config.wsl.toml) et [la ca
 
 Avec `wsl` sélectionné, le bootstrap complet retire aussi les trois artefacts de l'ancien watchdog d'interop via `state = "absent"`. Les étapes d'arrêt du timer et de rechargement/reset ciblé de systemd sont décrites dans [le cycle du bootstrap](ARCHITECTURE.md#cycle-du-bootstrap). WSLInterop reste une ressource native WSL, uniquement vérifiée par le doctor.
 
+Pour appliquer ces changements sur un poste installé, suivre [la procédure WSL](WSL.md), puis vérifier `workstation:config-audit --check`. Le guide explique aussi le cas d'un poste déjà conforme et le contrôle après shutdown.
+
 ## Configurations locales a examiner
 
 | Fichier | Gestion prévue |

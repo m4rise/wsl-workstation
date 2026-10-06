@@ -2,7 +2,7 @@
 
 [README](../README.md) · [Operations](OPERATIONS.md) · [Maintenance](MAINTENANCE.md)
 
-Les étapes 1 et 2 concernent toute contribution. Les étapes 3 à 5 sont facultatives : elles valident une **reprise personnelle réelle** depuis un bundle privé. Un test automatisé avec des clés fictives ne démontre pas que tes propres sauvegardes sont récupérables. Exécuter une étape à la fois et arrêter si elle échoue. Ne jamais transmettre de clé privée, jeton, mot de passe ou contenu du coffre.
+Les étapes 1 et 2 concernent toute contribution. Sans crédit Actions, compléter l'étape 1 avec [la CI locale](CI-LOCAL.md), conserver la PR en brouillon et effectuer l'étape 2 avant fusion quand Actions redevient disponible. Les étapes 3 à 5 sont facultatives : elles valident une **reprise personnelle réelle** depuis un bundle privé. Un test automatisé avec des clés fictives ne démontre pas que tes propres sauvegardes sont récupérables. Exécuter une étape à la fois et arrêter si elle échoue. Ne jamais transmettre de clé privée, jeton, mot de passe ou contenu du coffre.
 
 ## 1. Controle sur le poste actuel
 
@@ -68,6 +68,8 @@ Les jobs `checks` et `bootstrap-wsl` doivent réussir. Le second doit avoir term
 Le runner GitHub reste sur Windows pendant cet arrêt ; le scénario prévoit donc un shutdown complet, sans repli silencieux vers une simple nouvelle session. Ce test dépend des versions WSL et systemd du runner et doit être confirmé par un run sur le commit concerné. Il ne remplace pas la vérification locale de Docker Desktop et des comptes réels. Fournir le lien et le SHA, ou le journal d'échec. Un succès sur un autre SHA ne valide pas les modifications courantes.
 
 Pour tester localement sans crédit Actions, exécuter le script `.github/scripts/bootstrap-wsl.sh` avec un export vérifié dans une **WSL Ubuntu 26.04 jetable**, puis `wsl --terminate <distro-jetable>` depuis Windows et réinvoquer `.github/scripts/check-wsl.sh --after-terminate` dans cette distro. Ce mode vérifie un nouveau démarrage de PID 1 et les mêmes invariants systemd/interop. Les autres distributions maintiennent le kernel partagé en vie : ce contrôle ne démontre pas un nouveau boot de la VM WSL. Le job GitHub garde la vérification plus forte `--after-reboot` après shutdown complet.
+
+Suivre [les commandes complètes de CI locale](CI-LOCAL.md) pour préparer l'export, lancer le conteneur Linux, créer la distro jetable, enregistrer les journaux et la supprimer après vérification. Le [guide WSL](WSL.md) couvre séparément la migration et le shutdown complet d'un poste installé.
 
 ## 3. Premiere sauvegarde personnelle
 

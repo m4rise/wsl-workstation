@@ -44,11 +44,15 @@ Après fusion, avec un checkout propre :
 git switch main
 git pull --ff-only
 git status --short
+mise run workstation:config-audit
+```
+
+Le premier audit sert à examiner les changements attendus. Si la PR change des ressources à provisionner, comparer les copies locales avant d'appliquer `mise bootstrap --locked`. Une nouvelle version d'outil peut demander `mise install --locked`. `git pull` récupère les sources ; il n'applique pas le provisionnement. Pour la capacité WSL, suivre [la procédure dédiée](WSL.md). Après application, ou directement si aucune dérive n'est attendue :
+
+```bash
 mise run workstation:config-audit --check
 mise run workstation:doctor
 ```
-
-Si la PR change des ressources à provisionner, examiner les différences locales avant d'appliquer `mise bootstrap --locked`, puis refaire les contrôles. Une nouvelle version d'outil peut demander `mise install --locked`. `git pull` récupère les sources ; il n'applique pas le provisionnement.
 
 Pour remplacer un ancien bootstrap privé déjà installé, partir de l'historique neuf du public et conserver une archive privée vérifiée pour le retour arrière. Comparer les contenus versionnés et préserver le chemin du checkout, les fichiers locaux et les liens avant toute bascule. L'ancien historique reste dans l'archive privée : changer seulement l'URL d'un ancien clone conserverait ses commits privés. Valider le poste avant de supprimer l'ancien dépôt GitHub. Le dépôt de sauvegarde chiffrée, s'il est utilisé, reste distinct et privé.
 
@@ -117,6 +121,8 @@ La CI `Quality` s'exécute sur les PR, les push vers `main`, chaque lundi et à 
 2. Windows : import de cette archive, vérification du manifeste, création d'Ubuntu 26.04 WSL et du compte `contributor`, installation générique depuis le snapshot puis personnelle avec migration d'un timer legacy inerte, second bootstrap sans dérive, config-audit, shell interactif et coffre KeePassXC fonctionnel. Après `wsl --shutdown`, nouvelle invocation avec identifiant de boot différent, systemd `running`, `systemd-binfmt` inactive/skipped et WSLInterop natif sain ; CMD et PowerShell fonctionnent avant et après shutdown.
 
 La CI ne valide pas les comptes réels, la MFA, Docker Desktop, l'interface graphique KeePassXC ni les sauvegardes hors ligne. La [Validation pas à pas](VALIDATION.md) relie le run au bon commit et sépare la contribution publique de la reprise personnelle facultative. Le diagnostic complet du poste vient après ses connexions natives : `mise run workstation:doctor`.
+
+Le [parcours CI locale](CI-LOCAL.md) reproduit les contrôles Linux et WSL dans des environnements jetables quand Actions n'est pas disponible. Il indique les terminaux, les prérequis, l'export du commit, les journaux, le nettoyage et la limite du redémarrage ciblé. Une PR peut rester en brouillon avec des commits `[skip ci]` pendant cette période ; la fusion attend toujours les deux checks distants sur le SHA final.
 
 Pour un projet applicatif, une analyse supplémentaire est disponible : `mise run security:scan /chemin/du/projet`. Trivy examine les dépendances et configurations qu'il reconnaît, télécharge ses bases et renvoie 1 pour les alertes HIGH/CRITICAL. Ce contrôle ponctuel ne couvre pas tous les exécutables du poste. [Documentation Trivy](https://trivy.dev/docs/latest/target/filesystem/).
 

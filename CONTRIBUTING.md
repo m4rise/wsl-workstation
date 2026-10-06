@@ -19,6 +19,8 @@ mise run workstation:check
 
 Pour un changement de provisionnement, tester également un bootstrap neuf puis un second passage sans dérive. Décrire ce qui a été vérifié et ce qui reste manuel. Actualiser les documents affectés. Employer des Conventional Commits, par exemple `feat: add optional capability` ou `fix: preserve recovery file permissions`.
 
+Si Actions est temporairement indisponible, suivre [CI locale](docs/CI-LOCAL.md) et indiquer le SHA source, les résultats et les limites dans la PR. La conserver en brouillon avec des commits `[skip ci]` pour éviter les exécutions automatiques pendant cette période. Les deux checks distants restent nécessaires avant fusion ; une validation locale ne les remplace pas.
+
 Pour une modification limitée à la documentation ou aux templates GitHub, `mise run workstation:lint` et la relecture des fichiers concernés suffisent localement. Vérifier aussi la syntaxe YAML avec `mise exec -- yq eval '.' .github/ISSUE_TEMPLATE/*.yml >/dev/null` ; relire les champs selon [la syntaxe GitHub des formulaires](https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/syntax-for-issue-forms). La CI complète reste nécessaire avant fusion. Pour un changement de `renovate.json`, suivre [la validation Renovate](docs/MAINTENANCE.md#automatisation-des-dependances).
 
 Signaler une vulnérabilité selon [SECURITY](SECURITY.md). Ne jamais inclure de véritable clé ou jeton pour reproduire un problème.

@@ -350,18 +350,6 @@ En cas de compromission, révoquer d'abord les accès concernés. Changer la cl�
 
 `sysupdate` met Ubuntu à jour. `devupdate` actualise mise, ses outils, les repos shell et Codex si activé. Ces opérations peuvent modifier les lockfiles : examiner et tester les changements avant commit. `devclean` inspecte les installations supprimables et nettoie le cache ; `dockerclean` ne supprime pas les volumes.
 
-Après `wsl --shutdown`, l'agent SSH peut avoir perdu ses clés : utiliser `sshunlock`. Pour vérifier la politique WSL :
+Après `wsl --shutdown`, l'agent SSH peut avoir perdu ses clés : utiliser `sshunlock` si la capacité GitHub est active. La [procédure WSL](WSL.md) donne l'ordre des commandes de migration, les contrôles Ubuntu, le shutdown depuis PowerShell Windows et les résultats attendus. Le service `systemd-binfmt` inactive/skipped et son code de statut 3 sont normaux avec `ConditionVirtualization=!wsl` ; systemd doit être `running` et WSLInterop natif sain.
 
-```bash
-systemctl is-system-running
-systemctl status systemd-binfmt.service --no-pager
-cat /etc/systemd/system/systemd-binfmt.service.d/override.conf
-cat /proc/sys/fs/binfmt_misc/WSLInterop
-(cd /mnt/c && cmd.exe /d /c 'exit 0')
-(cd /mnt/c && powershell.exe -NoProfile -Command 'exit 0')
-mise run workstation:doctor
-```
-
-L'état attendu est systemd `running`, `systemd-binfmt` inactive/skipped avec `ConditionVirtualization=!wsl` non satisfaite, et WSLInterop `enabled`, `interpreter /init`, `flags: PF`. `systemctl status` renvoie normalement 3 pour ce service inactif. WSL gère l'interop nativement ; le drop-in évite l'échec de `systemd-binfmt` face à la protection WSL du registre binfmt partagé.
-
-Pour migrer un poste existant, conserver `wsl` sélectionné et exécuter `mise bootstrap --update --locked`, puis `mise bootstrap --locked` et `mise run workstation:config-audit --check`. Le bootstrap retire l'ancien watchdog et nettoie uniquement l'échec historique éventuel de `systemd-binfmt`. Valider ensuite un vrai `wsl --shutdown` depuis PowerShell puis les contrôles ci-dessus. Ne retirer le drop-in qu'après validation d'une résolution amont dans la vraie CI WSL.
+Pour reproduire la validation sans Actions, suivre [CI locale](CI-LOCAL.md). Les étapes utilisent uniquement une distribution jetable ; le shutdown complet du poste est une étape distincte qui exige d'enregistrer le travail en cours.

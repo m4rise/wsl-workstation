@@ -69,6 +69,8 @@ mise run profile:select generic
 
 La sélection ne désinstalle pas les outils et ne supprime pas les services déjà installés. Pour une session temporaire : `mise -E wsl,github bootstrap --update --locked`. La sélection personnelle conserve la capacité `wsl` : WSL gère nativement WSLInterop, le doctor valide son état et le bootstrap empêche `systemd-binfmt` de s'exécuter sous WSL. Il retire aussi les anciens fichiers et le watchdog d'interop.
 
+Sur un poste déjà installé, suivre [la migration WSL et ses contrôles après redémarrage](docs/WSL.md). Le guide distingue Ubuntu de PowerShell Windows, donne les résultats attendus et explique le code de sortie normal du service skipped.
+
 ## Identite et restauration
 
 Le Git commun inclut `~/.config/git/identity.conf` si ce fichier existe. La [procédure d'identité](docs/OPERATIONS.md#identite-git-et-ssh) explique comment créer une nouvelle clé et comment configurer une identité publique distincte avec adresse *noreply*.
@@ -112,6 +114,8 @@ mise run workstation:check
 
 La CI applique ces contrôles sur Ubuntu 26.04, exporte le commit et teste les sources exportées. Un second job installe **cet export dans une vraie distribution Ubuntu 26.04 WSL** sur Windows : bootstrap générique avec snapshot shell, migration d'un timer legacy inerte, activation des capacités personnelles, seconde application puis contrôle de convergence et WSLInterop. Après un `wsl --shutdown`, une nouvelle invocation vérifie un identifiant de boot différent, systemd `running`, `systemd-binfmt` inactive/skipped et l'exécution de CMD et PowerShell. Docker Desktop, les véritables comptes et l'ouverture graphique du coffre restent à valider sur le poste. La CI se déclenche sur les PR, `main`, chaque semaine et manuellement.
 
+Sans crédit Actions, [reproduire les contrôles en local](docs/CI-LOCAL.md) dans un conteneur Ubuntu 26.04 et une WSL jetable. Ce parcours fournit les commandes d'export, de bootstrap, de redémarrage ciblé et de nettoyage. Il ne remplace pas les deux checks distants exigés avant fusion.
+
 La reproductibilité concerne la configuration, les CLI verrouillées et, sur demande, les commits shell. Les packages APT et l'installateur Codex évoluent : cette configuration ne produit pas une image système identique octet par octet.
 
 La publication se prépare dans un nouveau dépôt à historique vide. Le dépôt privé d'origine conserve son historique. [Procédure de publication](docs/MAINTENANCE.md#publication).
@@ -121,6 +125,8 @@ La publication se prépare dans un nouveau dépôt à historique vide. Le dépô
 - [Outils](docs/TOOLS.md)
 - [Maintenance, tests et publication](docs/MAINTENANCE.md)
 - [Validation pas à pas](docs/VALIDATION.md)
+- [Politique WSL et migration](docs/WSL.md)
+- [CI locale sans crédit Actions](docs/CI-LOCAL.md)
 - [Contribution](CONTRIBUTING.md)
 - [Sécurité](SECURITY.md)
 
