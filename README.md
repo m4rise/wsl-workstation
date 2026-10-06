@@ -112,8 +112,6 @@ mise run workstation:check
 
 La CI applique ces contrôles sur Ubuntu 26.04, exporte le commit et teste les sources exportées. Un second job installe **cet export dans une vraie distribution Ubuntu 26.04 WSL** sur Windows : bootstrap générique avec snapshot shell, activation des capacités personnelles, seconde application et contrôle de convergence. Après un `wsl --shutdown`, elle vérifie que systemd est opérationnel et relance le doctor. Docker Desktop, les véritables comptes et l'ouverture graphique du coffre restent à valider sur le poste. La CI se déclenche sur les PR, `main`, chaque semaine et manuellement.
 
-Sans crédit Actions, [reproduire les contrôles en local](docs/CI-LOCAL.md) dans un conteneur Ubuntu 26.04 et une WSL jetable. Ce parcours fournit les commandes d'export, de bootstrap, de redémarrage ciblé et de nettoyage. Il ne remplace pas les deux checks distants exigés avant fusion.
-
 La reproductibilité concerne la configuration, les CLI verrouillées et, sur demande, les commits shell. Les packages APT et l'installateur Codex évoluent : cette configuration ne produit pas une image système identique octet par octet.
 
 La publication se prépare dans un nouveau dépôt à historique vide. Le dépôt privé d'origine conserve son historique. [Procédure de publication](docs/MAINTENANCE.md#publication).
@@ -123,7 +121,6 @@ La publication se prépare dans un nouveau dépôt à historique vide. Le dépô
 - [Outils](docs/TOOLS.md)
 - [Maintenance, tests et publication](docs/MAINTENANCE.md)
 - [Validation pas à pas](docs/VALIDATION.md)
-- [CI locale sans crédit Actions](docs/CI-LOCAL.md)
 - [Contribution](CONTRIBUTING.md)
 - [Sécurité](SECURITY.md)
 

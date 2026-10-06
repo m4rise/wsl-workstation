@@ -2,7 +2,7 @@
 
 [README](../README.md) · [Operations](OPERATIONS.md) · [Maintenance](MAINTENANCE.md)
 
-Les étapes 1 et 2 concernent toute contribution. Sans crédit Actions, compléter l'étape 1 avec [la CI locale](CI-LOCAL.md), conserver la PR en brouillon et effectuer l'étape 2 avant fusion quand Actions redevient disponible. Les étapes 3 à 5 sont facultatives : elles valident une **reprise personnelle réelle** depuis un bundle privé. Un test automatisé avec des clés fictives ne démontre pas que tes propres sauvegardes sont récupérables. Exécuter une étape à la fois et arrêter si elle échoue. Ne jamais transmettre de clé privée, jeton, mot de passe ou contenu du coffre.
+Les étapes 1 et 2 concernent toute contribution. Les étapes 3 à 5 sont facultatives : elles valident une **reprise personnelle réelle** depuis un bundle privé. Un test automatisé avec des clés fictives ne démontre pas que tes propres sauvegardes sont récupérables. Exécuter une étape à la fois et arrêter si elle échoue. Ne jamais transmettre de clé privée, jeton, mot de passe ou contenu du coffre.
 
 ## 1. Controle sur le poste actuel
 
@@ -65,7 +65,7 @@ gh run view "$run_id" --log-failed
 
 Les jobs `checks` et `bootstrap-wsl` doivent réussir. Le second installe les profils générique et personnel, vérifie leur convergence, l'audit et les tests WSL/KeePassXC. Après `wsl --shutdown`, il vérifie systemd `running` et relance le doctor. Le runner reste sur Windows pendant cet arrêt. Ce contrôle ne remplace pas la vérification locale de Docker Desktop et des comptes réels. Fournir le lien et le SHA, ou le journal d'échec : un succès sur un autre SHA ne valide pas les modifications courantes.
 
-Sans crédit Actions, suivre [CI locale](CI-LOCAL.md). Ce parcours utilise un conteneur et une WSL jetable, dont le redémarrage ciblé préserve les autres distributions. Il ne redémarre pas la VM WSL partagée.
+Si Actions est indisponible, conserver la PR en brouillon avec des commits `[skip ci]` et rapporter les résultats des contrôles locaux. Exécuter les deux jobs sur le SHA final avant fusion quand Actions redevient disponible.
 
 ## 3. Premiere sauvegarde personnelle
 

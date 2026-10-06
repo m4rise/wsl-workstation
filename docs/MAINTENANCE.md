@@ -122,8 +122,6 @@ La CI `Quality` s'exécute sur les PR, les push vers `main`, chaque lundi et à 
 
 La CI ne valide pas les comptes réels, la MFA, Docker Desktop, l'interface graphique KeePassXC ni les sauvegardes hors ligne. La [Validation pas à pas](VALIDATION.md) relie le run au bon commit et sépare la contribution publique de la reprise personnelle facultative. Le diagnostic complet du poste vient après ses connexions natives : `mise run workstation:doctor`.
 
-Le [parcours CI locale](CI-LOCAL.md) reproduit les contrôles Linux et WSL dans des environnements jetables quand Actions n'est pas disponible. Il indique les terminaux, les prérequis, l'export du commit, les journaux, le nettoyage et la limite du redémarrage ciblé. Une PR peut rester en brouillon avec des commits `[skip ci]` pendant cette période ; la fusion attend toujours les deux checks distants sur le SHA final.
-
 Pour un projet applicatif, une analyse supplémentaire est disponible : `mise run security:scan /chemin/du/projet`. Trivy examine les dépendances et configurations qu'il reconnaît, télécharge ses bases et renvoie 1 pour les alertes HIGH/CRITICAL. Ce contrôle ponctuel ne couvre pas tous les exécutables du poste. [Documentation Trivy](https://trivy.dev/docs/latest/target/filesystem/).
 
 ## Automatisation des dependances

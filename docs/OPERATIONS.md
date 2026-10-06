@@ -352,4 +352,3 @@ En cas de compromission, révoquer d'abord les accès concernés. Changer la cl�
 
 Après le premier bootstrap avec `wsl`, enregistrer le travail puis exécuter `wsl --shutdown` dans PowerShell Windows et rouvrir Ubuntu. Cela arrête toutes les distributions WSL. La condition installée empêche `systemd-binfmt` de s'exécuter sous WSL ; son état inactive/skipped est attendu. Vérifier ensuite `systemctl is-system-running` et `mise run workstation:doctor --bootstrap`. L'agent SSH peut avoir perdu ses clés : utiliser `sshunlock` si la capacité GitHub est active.
 
-Pour reproduire la validation sans Actions, suivre [CI locale](CI-LOCAL.md). Les étapes utilisent uniquement une distribution jetable ; le shutdown complet du poste est une étape distincte qui exige d'enregistrer le travail en cours.
