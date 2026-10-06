@@ -105,3 +105,11 @@ jobs:
           $checkout = '/tmp/workstation-export/workstation-public'
           wsl.exe --distribution Ubuntu-26.04 --user root -- bash "$checkout/.github/scripts/bootstrap-wsl.sh" "$checkout"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Verify native interop after a full WSL shutdown
+        shell: pwsh
+        run: |
+          # This job runs on Windows; shutting down WSL leaves the runner alive.
+          wsl.exe --shutdown
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          wsl.exe --distribution Ubuntu-26.04 --user root -- bash /home/contributor/.config/mise/.github/scripts/check-wsl.sh --after-reboot
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

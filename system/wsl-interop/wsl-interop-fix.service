@@ -1,9 +1,0 @@
-[Unit]
-Description=Ensure WSL Windows executable interoperability
-After=systemd-binfmt.service
-Wants=systemd-binfmt.service
-ConditionPathExists=/proc/sys/fs/binfmt_misc/register
-
-[Service]
-Type=oneshot
-ExecStart=/usr/local/sbin/ensure-wsl-interop

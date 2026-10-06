@@ -248,10 +248,14 @@ fi
 if [[ "${WORKSTATION_WSL:-0}" == 1 ]]; then
     section "WSL interoperability"
 
-    if [[ -e /proc/sys/fs/binfmt_misc/WSLInterop ]]; then
-        ok "WSLInterop handler registered"
+    interop=/proc/sys/fs/binfmt_misc/WSLInterop
+    if [[ -r "$interop" ]] &&
+        grep -qx 'enabled' "$interop" &&
+        grep -qx 'interpreter /init' "$interop" &&
+        grep -qx 'flags: PF' "$interop"; then
+        ok "WSLInterop handler healthy"
     else
-        fail "WSLInterop handler missing"
+        fail "WSLInterop handler missing or invalid"
     fi
 
     windows_cmd="$(command -v cmd.exe 2>/dev/null || true)"
@@ -261,17 +265,38 @@ if [[ "${WORKSTATION_WSL:-0}" == 1 ]]; then
         windows_cmd=/mnt/c/Windows/System32/cmd.exe
     fi
 
-    if [[ -n "$windows_cmd" ]] && "$windows_cmd" /c ver >/dev/null 2>&1; then
+    if [[ -n "$windows_cmd" ]] && (
+        cd /mnt/c && "$windows_cmd" /d /c 'exit 0'
+    ) >/dev/null 2>&1; then
         ok "Windows executable interoperability"
     else
         fail "Cannot execute Windows binaries from WSL"
     fi
 
-    if systemctl is-active --quiet wsl-interop-fix.timer 2>/dev/null; then
-        ok "Temporary WSLInterop workaround timer active"
+    override=/etc/systemd/system/systemd-binfmt.service.d/override.conf
+    if [[ -f "$override" ]] && grep -Fxq 'ConditionVirtualization=!wsl' "$override"; then
+        ok "systemd-binfmt WSL condition installed"
     else
-        warn "WSLInterop workaround timer inactive or absent"
+        fail "systemd-binfmt WSL condition missing or invalid"
     fi
+    if [[ "$(systemctl show --property=LoadState --value systemd-binfmt.service 2>/dev/null)" != loaded ]]; then
+        fail "Cannot inspect systemd-binfmt.service"
+    elif systemctl is-failed --quiet systemd-binfmt.service 2>/dev/null; then
+        fail "systemd-binfmt.service failed"
+    else
+        ok "systemd-binfmt.service not failed (inactive/skipped expected)"
+    fi
+
+    for legacy in \
+        /usr/local/sbin/ensure-wsl-interop \
+        /etc/systemd/system/wsl-interop-fix.service \
+        /etc/systemd/system/wsl-interop-fix.timer; do
+        if [[ -e "$legacy" || -L "$legacy" ]]; then
+            fail "Legacy WSLInterop artifact remains: $legacy"
+        else
+            ok "Legacy WSLInterop artifact absent: $legacy"
+        fi
+    done
 
 fi
 

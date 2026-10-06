@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+# Lifecycle cleanup only; mise owns the files and WSL owns WSLInterop.
+set -euo pipefail
+
+[[ "${WORKSTATION_WSL:-0}" == 1 ]] || exit 0
+
+case "${1:-prepare}" in
+prepare)
+    # A missing or already disabled/inactive timer needs no mutation.
+    if systemctl is-enabled --quiet wsl-interop-fix.timer 2>/dev/null ||
+        systemctl is-active --quiet wsl-interop-fix.timer 2>/dev/null; then
+        sudo systemctl disable --now wsl-interop-fix.timer
+    fi
+    # Let no in-flight oneshot outlive removal of its executable.
+    case "$(systemctl show --property=ActiveState --value wsl-interop-fix.service 2>/dev/null || true)" in
+    active | activating) sudo systemctl stop wsl-interop-fix.service ;;
+    esac
+    ;;
+finalize)
+    override=/etc/systemd/system/systemd-binfmt.service.d/override.conf
+    grep -Fxq 'ConditionVirtualization=!wsl' "$override"
+    # The native file primitive does not reload the system manager.
+    reload="$(systemctl show --property=NeedDaemonReload --value systemd-binfmt.service)"
+    for unit in wsl-interop-fix.service wsl-interop-fix.timer; do
+        # Removed units can already be unloaded on a fresh installation.
+        reload+=$'\n'"$(systemctl show --property=NeedDaemonReload --value "$unit" 2>/dev/null || true)"
+    done
+    if grep -qx yes <<<"$reload"; then
+        sudo systemctl daemon-reload
+    fi
+    if systemctl is-failed --quiet systemd-binfmt.service 2>/dev/null; then
+        sudo systemctl reset-failed systemd-binfmt.service
+    fi
+    ;;
+*)
+    echo "Usage: migrate-legacy-interop [prepare|finalize]" >&2
+    exit 2
+    ;;
+esac

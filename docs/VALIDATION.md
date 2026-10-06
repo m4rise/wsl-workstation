@@ -63,7 +63,11 @@ gh run view "$run_id" --json url,headSha,conclusion,jobs
 gh run view "$run_id" --log-failed
 ```
 
-Les jobs `checks` et `bootstrap-wsl` doivent réussir. Le second doit avoir terminé le bootstrap générique, le personnel, leur seconde application et les tests WSL/KeePassXC. Fournir le lien et le SHA, ou le journal d'échec. Un succès sur un autre SHA ne valide pas les modifications courantes.
+Les jobs `checks` et `bootstrap-wsl` doivent réussir. Le second doit avoir terminé le bootstrap générique, le personnel avec migration d'un timer legacy inerte, leur seconde application, config-audit et les tests WSL/KeePassXC. Il exécute ensuite `wsl --shutdown` depuis PowerShell sur l'hôte Windows et réinvoque Ubuntu 26.04 : l'identifiant de boot doit changer, systemd doit être `running`, `systemd-binfmt` inactive/skipped avec sa condition WSL non satisfaite, et WSLInterop doit garder `enabled`, `interpreter /init`, `flags: PF`. CMD et PowerShell sont exécutés depuis `/mnt/c` avant et après shutdown, sans bootstrap réparateur entre les deux.
+
+Le runner GitHub reste sur Windows pendant cet arrêt ; le scénario prévoit donc un shutdown complet, sans repli silencieux vers une simple nouvelle session. Ce test dépend des versions WSL et systemd du runner et doit être confirmé par un run sur le commit concerné. Il ne remplace pas la vérification locale de Docker Desktop et des comptes réels. Fournir le lien et le SHA, ou le journal d'échec. Un succès sur un autre SHA ne valide pas les modifications courantes.
+
+Pour tester localement sans crédit Actions, exécuter le script `.github/scripts/bootstrap-wsl.sh` avec un export vérifié dans une **WSL Ubuntu 26.04 jetable**, puis `wsl --terminate <distro-jetable>` depuis Windows et réinvoquer `.github/scripts/check-wsl.sh --after-terminate` dans cette distro. Ce mode vérifie un nouveau démarrage de PID 1 et les mêmes invariants systemd/interop. Les autres distributions maintiennent le kernel partagé en vie : ce contrôle ne démontre pas un nouveau boot de la VM WSL. Le job GitHub garde la vérification plus forte `--after-reboot` après shutdown complet.
 
 ## 3. Premiere sauvegarde personnelle
 

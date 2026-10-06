@@ -350,12 +350,18 @@ En cas de compromission, révoquer d'abord les accès concernés. Changer la cl�
 
 `sysupdate` met Ubuntu à jour. `devupdate` actualise mise, ses outils, les repos shell et Codex si activé. Ces opérations peuvent modifier les lockfiles : examiner et tester les changements avant commit. `devclean` inspecte les installations supprimables et nettoie le cache ; `dockerclean` ne supprime pas les volumes.
 
-Après `wsl --shutdown`, l'agent SSH peut avoir perdu ses clés : utiliser `sshunlock`. Pour le correctif WSL :
+Après `wsl --shutdown`, l'agent SSH peut avoir perdu ses clés : utiliser `sshunlock`. Pour vérifier la politique WSL :
 
 ```bash
-systemctl status wsl-interop-fix.timer --no-pager
-journalctl -u wsl-interop-fix.service -n 30 --no-pager
-cmd.exe /c ver
+systemctl is-system-running
+systemctl status systemd-binfmt.service --no-pager
+cat /etc/systemd/system/systemd-binfmt.service.d/override.conf
+cat /proc/sys/fs/binfmt_misc/WSLInterop
+(cd /mnt/c && cmd.exe /d /c 'exit 0')
+(cd /mnt/c && powershell.exe -NoProfile -Command 'exit 0')
+mise run workstation:doctor
 ```
 
-Ne retirer le correctif qu'après validation d'une résolution amont sur la version WSL utilisée.
+L'état attendu est systemd `running`, `systemd-binfmt` inactive/skipped avec `ConditionVirtualization=!wsl` non satisfaite, et WSLInterop `enabled`, `interpreter /init`, `flags: PF`. `systemctl status` renvoie normalement 3 pour ce service inactif. WSL gère l'interop nativement ; le drop-in évite l'échec de `systemd-binfmt` face à la protection WSL du registre binfmt partagé.
+
+Pour migrer un poste existant, conserver `wsl` sélectionné et exécuter `mise bootstrap --update --locked`, puis `mise bootstrap --locked` et `mise run workstation:config-audit --check`. Le bootstrap retire l'ancien watchdog et nettoie uniquement l'échec historique éventuel de `systemd-binfmt`. Valider ensuite un vrai `wsl --shutdown` depuis PowerShell puis les contrôles ci-dessus. Ne retirer le drop-in qu'après validation d'une résolution amont dans la vraie CI WSL.

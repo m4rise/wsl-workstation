@@ -114,7 +114,7 @@ Le test KeePassXC crée, modifie, capture, restaure et rouvre un coffre sans éc
 La CI `Quality` s'exécute sur les PR, les push vers `main`, chaque lundi et à la demande. Elle annule les runs précédents du même groupe. Ses actions sont fixées à leurs SHA, ses permissions restent `contents: read`, et elle n'utilise aucun secret personnel.
 
 1. Ubuntu 26.04 : lint, Gitleaks, tests ; export du commit, vérification du manifeste et des sources exportées ; archivage en conservant les modes exécutables.
-2. Windows : import de cette archive, vérification du manifeste, création d'Ubuntu 26.04 WSL et du compte `contributor`, installation générique depuis le snapshot puis personnelle, second bootstrap sans dérive, shell interactif, services WSLInterop et coffre KeePassXC fonctionnel.
+2. Windows : import de cette archive, vérification du manifeste, création d'Ubuntu 26.04 WSL et du compte `contributor`, installation générique depuis le snapshot puis personnelle avec migration d'un timer legacy inerte, second bootstrap sans dérive, config-audit, shell interactif et coffre KeePassXC fonctionnel. Après `wsl --shutdown`, nouvelle invocation avec identifiant de boot différent, systemd `running`, `systemd-binfmt` inactive/skipped et WSLInterop natif sain ; CMD et PowerShell fonctionnent avant et après shutdown.
 
 La CI ne valide pas les comptes réels, la MFA, Docker Desktop, l'interface graphique KeePassXC ni les sauvegardes hors ligne. La [Validation pas à pas](VALIDATION.md) relie le run au bon commit et sépare la contribution publique de la reprise personnelle facultative. Le diagnostic complet du poste vient après ses connexions natives : `mise run workstation:doctor`.
 

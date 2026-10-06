@@ -31,7 +31,9 @@ Chaque capacité émet un indicateur `WORKSTATION_<NOM>` utilisé par le bootstr
 
 `mise bootstrap --update --locked` applique les ressources déclaratives, les dotfiles, le shell de connexion, les outils verrouillés puis la tâche `bootstrap`. Le profil cloud ajoute sa clé publique et son dépôt APT en phase `pre-packages`. `--update` rafraîchit ensuite les index nécessaires à `google-cloud-cli`.
 
-Le profil WSL conserve le script `ensure-wsl-interop`, le service `oneshot` et son timer. Un service `oneshot` sain peut être `inactive (dead)` après exécution ; le timer doit être actif et activé. Le correctif reste nécessaire tant que le problème WSLInterop/binfmt du poste n'est pas résolu en amont.
+La capacité WSL conserve `WORKSTATION_WSL=1` et laisse WSL gérer nativement WSLInterop. Le doctor valide le handler (`enabled`, `interpreter /init`, `flags: PF`) et l'exécution Windows depuis `/mnt/c`. Le drop-in `system/wsl/systemd-binfmt.override.conf` impose `ConditionVirtualization=!wsl` : WSL protège le registre binfmt partagé, et laisser `systemd-binfmt` le flusher provoquerait un échec et un faux état systemd `degraded`. Sous WSL, le service doit rester inactive/skipped.
+
+Lors d'un bootstrap complet, le hook `pre-packages` arrête et désactive le timer legacy, puis mise supprime ses trois artefacts déclarés `state = "absent"` et installe le drop-in. La tâche finale recharge systemd seulement si une des unités concernées le demande, puis efface uniquement l'échec éventuel de `systemd-binfmt.service`. Un second passage ne change plus cet état. Utiliser le bootstrap complet pour cette migration, car `bootstrap files apply` seul ne lance pas ces étapes de cycle de vie. Un futur changement amont pourra permettre de retirer l'override après validation dans la vraie CI WSL, y compris après shutdown.
 
 Changer de profil modifie l'état désiré des ressources actives. Cela n'autorise pas leur désinstallation automatique. Toute suppression de package ou de service fait l'objet d'une opération explicite.
 

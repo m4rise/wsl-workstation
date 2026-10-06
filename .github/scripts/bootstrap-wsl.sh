@@ -52,16 +52,36 @@ runuser -l contributor -c 'cd ~/.config/mise && zsh -i tests/check-shell.zsh gen
 # Generic bootstrap must not provision optional accounts, services or tools.
 test ! -e /etc/apt/sources.list.d/google-cloud-sdk.list
 test ! -e /etc/systemd/system/wsl-interop-fix.timer
+test ! -e /etc/systemd/system/systemd-binfmt.service.d/override.conf
 test ! -e /home/contributor/.local/bin/codex
 test ! -e /home/contributor/.config/git/identity.conf
 runuser -l contributor -c '! ~/.local/bin/mise which gh'
 
 # Exercise the complete personal capability set with the same fresh user,
-# including the actual WSL workaround, but without personal authentication.
+# including the WSL policy, but without personal authentication.
+# Seed an enabled/active legacy timer with an inert executable: migration must
+# retire it without ever registering or repairing WSLInterop.
+printf '#!/bin/sh\nexit 0\n' >/usr/local/sbin/ensure-wsl-interop
+chmod 0755 /usr/local/sbin/ensure-wsl-interop
+cat >/etc/systemd/system/wsl-interop-fix.service <<'UNIT'
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/ensure-wsl-interop
+UNIT
+cat >/etc/systemd/system/wsl-interop-fix.timer <<'UNIT'
+[Timer]
+OnActiveSec=1h
+[Install]
+WantedBy=timers.target
+UNIT
+systemctl daemon-reload
+systemctl enable --now wsl-interop-fix.timer
+
 runuser -l contributor -c 'cd ~/.config/mise && ~/.local/bin/mise run profile:select personal'
 runuser -l contributor -c 'cd ~/.config/mise && ~/.local/bin/mise bootstrap --update --locked --yes'
 runuser -l contributor -c 'cd ~/.config/mise && ~/.local/bin/mise bootstrap --locked --yes'
 runuser -l contributor -c 'cd ~/.config/mise && ~/.local/bin/mise bootstrap status --missing'
+runuser -l contributor -c 'cd ~/.config/mise && ~/.local/bin/mise run workstation:config-audit --check'
 runuser -l contributor -c 'cd ~/.config/mise && ~/.local/bin/mise run workstation:doctor --bootstrap'
 runuser -l contributor -c 'cd ~/.config/mise && ~/.local/bin/mise -E secrets run workstation:test'
 runuser -l contributor -c 'cd ~/.config/mise && zsh -i tests/check-shell.zsh personal'
@@ -70,7 +90,6 @@ runuser -l contributor -c 'cd ~/.config/mise && zsh -i tests/check-shell.zsh per
 runuser -l contributor -c '"$HOME/.local/bin/mise" exec -- keepassxc-cli --version'
 
 test -L /home/contributor/.zshrc
-systemctl is-enabled --quiet wsl-interop-fix.timer
-systemctl is-active --quiet wsl-interop-fix.timer
-test -e /proc/sys/fs/binfmt_misc/WSLInterop
-cmd.exe /c ver >/dev/null
+bash /home/contributor/.config/mise/.github/scripts/check-wsl.sh
+cat /proc/sys/kernel/random/boot_id >/var/tmp/workstation-wsl-boot-id
+awk '{print $22}' /proc/1/stat >/var/tmp/workstation-wsl-init-start
