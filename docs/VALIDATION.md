@@ -63,7 +63,9 @@ gh run view "$run_id" --json url,headSha,conclusion,jobs
 gh run view "$run_id" --log-failed
 ```
 
-Les jobs `checks` et `bootstrap-wsl` doivent réussir. Le second doit avoir terminé le bootstrap générique, le personnel, leur seconde application et les tests WSL/KeePassXC. Fournir le lien et le SHA, ou le journal d'échec. Un succès sur un autre SHA ne valide pas les modifications courantes.
+Les jobs `checks` et `bootstrap-wsl` doivent réussir. Le second installe les profils générique et personnel, vérifie leur convergence, l'audit et les tests WSL/KeePassXC. Après `wsl --shutdown`, il vérifie systemd `running` et relance le doctor. Le runner reste sur Windows pendant cet arrêt. Ce contrôle ne remplace pas la vérification locale de Docker Desktop et des comptes réels. Fournir le lien et le SHA, ou le journal d'échec : un succès sur un autre SHA ne valide pas les modifications courantes.
+
+Si Actions est indisponible, conserver la PR en brouillon avec des commits `[skip ci]` et rapporter les résultats des contrôles locaux. Exécuter les deux jobs sur le SHA final avant fusion quand Actions redevient disponible.
 
 ## 3. Premiere sauvegarde personnelle
 

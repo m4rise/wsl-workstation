@@ -21,7 +21,7 @@ devversions
 devdoctor --bootstrap
 ```
 
-Le lint vérifie les sources Bash, le script WSL installé s'il existe, la syntaxe Zsh, la qualité et le formatage Python avec Ruff, les métadonnées, les exemples et les configurations TOML, les workflows et les liens Markdown locaux avec leurs ancres. L'audit Gitleaks couvre l'historique Git complet et les fichiers présents, avec masquage. Le diagnostic `--bootstrap` ne valide aucune authentification ; le diagnostic normal contrôle les intégrations sélectionnées.
+Le lint vérifie les sources Bash, la syntaxe Zsh, la qualité et le formatage Python avec Ruff, les métadonnées, les exemples et les configurations TOML, les workflows et les liens Markdown locaux avec leurs ancres. L'audit Gitleaks couvre l'historique Git complet et les fichiers présents, avec masquage. Le diagnostic `--bootstrap` ne valide aucune authentification ; le diagnostic normal contrôle les intégrations sélectionnées.
 
 ## Identite Git et SSH
 
@@ -350,12 +350,4 @@ En cas de compromission, révoquer d'abord les accès concernés. Changer la cl�
 
 `sysupdate` met Ubuntu à jour. `devupdate` actualise mise, ses outils, les repos shell et Codex si activé. Ces opérations peuvent modifier les lockfiles : examiner et tester les changements avant commit. `devclean` inspecte les installations supprimables et nettoie le cache ; `dockerclean` ne supprime pas les volumes.
 
-Après `wsl --shutdown`, l'agent SSH peut avoir perdu ses clés : utiliser `sshunlock`. Pour le correctif WSL :
-
-```bash
-systemctl status wsl-interop-fix.timer --no-pager
-journalctl -u wsl-interop-fix.service -n 30 --no-pager
-cmd.exe /c ver
-```
-
-Ne retirer le correctif qu'après validation d'une résolution amont sur la version WSL utilisée.
+Après le premier bootstrap avec `wsl`, enregistrer le travail puis exécuter `wsl --shutdown` dans PowerShell Windows et rouvrir Ubuntu. Cela arrête toutes les distributions WSL. La condition installée empêche `systemd-binfmt` de s'exécuter sous WSL ; son état inactive/skipped est attendu. Vérifier ensuite `systemctl is-system-running` et `mise run workstation:doctor --bootstrap`. L'agent SSH peut avoir perdu ses clés : utiliser `sshunlock` si la capacité GitHub est active.

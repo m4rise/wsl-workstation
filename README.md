@@ -51,7 +51,7 @@ La sélection utilise les environnements natifs mise, enregistrés dans `miserc.
 | `cloud` | Dépôt APT Google, Google Cloud CLI, plugin et diagnostic |
 | `codex` | Installation officielle de Codex et maintenance |
 | `docker` | Diagnostic et alias Docker Desktop ; aucun moteur Linux installé |
-| `wsl` | Correctif WSLInterop, service et timer pour Ubuntu 26.04 WSL |
+| `wsl` | Interop Windows native et adaptation systemd-binfmt |
 | `secrets` | fnox + age et commandes de sauvegarde/restauration |
 | `vault` | KeePassXC via APT ; CLI utilisable sans écran, interface graphique facultative avec WSLg |
 
@@ -67,7 +67,7 @@ mise bootstrap --update --locked
 mise run profile:select generic
 ```
 
-La sélection ne désinstalle pas les outils et ne supprime pas les services déjà installés. Pour une session temporaire : `mise -E wsl,github bootstrap --update --locked`. Le correctif WSLInterop documenté est conservé et activé dans la sélection personnelle.
+La sélection ne désinstalle pas les outils déjà installés. Pour une session temporaire : `mise -E wsl,github bootstrap --update --locked`. `personal` inclut `wsl`. WSL gère l'interop Windows nativement ; cette capacité installe uniquement une condition systemd qui empêche `systemd-binfmt` d'échouer sur le registre protégé par WSL. Après son premier bootstrap, enregistrer le travail puis lancer `wsl --shutdown` dans PowerShell Windows et rouvrir Ubuntu : cela arrête toutes les distributions WSL et applique la condition au prochain démarrage. `mise run workstation:doctor --bootstrap` vérifie ensuite l'exécution Windows.
 
 ## Identite et restauration
 
@@ -110,7 +110,7 @@ mise run workstation:check
 
 `-E secrets` ajoute les outils cryptographiques pour cette commande sans changer le profil enregistré. Les tests utilisent des données fictives et des répertoires temporaires ; ils ne restaurent rien dans le compte courant.
 
-La CI applique ces contrôles sur Ubuntu 26.04, exporte le commit et teste les sources exportées. Un second job installe **cet export dans une vraie distribution Ubuntu 26.04 WSL** sur Windows : bootstrap générique avec snapshot shell, activation des capacités personnelles, seconde application puis contrôle de convergence et WSLInterop. Docker Desktop, les véritables comptes et l'ouverture graphique du coffre restent à valider sur le poste. La CI se déclenche sur les PR, `main`, chaque semaine et manuellement.
+La CI applique ces contrôles sur Ubuntu 26.04, exporte le commit et teste les sources exportées. Un second job installe **cet export dans une vraie distribution Ubuntu 26.04 WSL** sur Windows : bootstrap générique avec snapshot shell, activation des capacités personnelles, seconde application et contrôle de convergence. Après un `wsl --shutdown`, elle vérifie que systemd est opérationnel et relance le doctor. Docker Desktop, les véritables comptes et l'ouverture graphique du coffre restent à valider sur le poste. La CI se déclenche sur les PR, `main`, chaque semaine et manuellement.
 
 La reproductibilité concerne la configuration, les CLI verrouillées et, sur demande, les commits shell. Les packages APT et l'installateur Codex évoluent : cette configuration ne produit pas une image système identique octet par octet.
 

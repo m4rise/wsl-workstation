@@ -105,3 +105,12 @@ jobs:
           $checkout = '/tmp/workstation-export/workstation-public'
           wsl.exe --distribution Ubuntu-26.04 --user root -- bash "$checkout/.github/scripts/bootstrap-wsl.sh" "$checkout"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Verify workstation after WSL restart
+        shell: pwsh
+        run: |
+          wsl.exe --shutdown
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          wsl.exe --distribution Ubuntu-26.04 --user root -- timeout 120 systemctl is-system-running --wait
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          wsl.exe --distribution Ubuntu-26.04 --user root -- runuser -l contributor -c 'cd ~/.config/mise && ~/.local/bin/mise run workstation:doctor --bootstrap'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

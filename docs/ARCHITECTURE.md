@@ -31,9 +31,7 @@ Chaque capacité émet un indicateur `WORKSTATION_<NOM>` utilisé par le bootstr
 
 `mise bootstrap --update --locked` applique les ressources déclaratives, les dotfiles, le shell de connexion, les outils verrouillés puis la tâche `bootstrap`. Le profil cloud ajoute sa clé publique et son dépôt APT en phase `pre-packages`. `--update` rafraîchit ensuite les index nécessaires à `google-cloud-cli`.
 
-Le profil WSL conserve le script `ensure-wsl-interop`, le service `oneshot` et son timer. Un service `oneshot` sain peut être `inactive (dead)` après exécution ; le timer doit être actif et activé. Le correctif reste nécessaire tant que le problème WSLInterop/binfmt du poste n'est pas résolu en amont.
-
-Changer de profil modifie l'état désiré des ressources actives. Cela n'autorise pas leur désinstallation automatique. Toute suppression de package ou de service fait l'objet d'une opération explicite.
+La capacité WSL conserve `WORKSTATION_WSL=1`. WSL gère nativement l'interop Windows ; le doctor vérifie l'exécution de CMD depuis `/mnt/c`. La seule adaptation système est le drop-in déclaratif `ConditionVirtualization=!wsl` : le registre binfmt est protégé par WSL, et `systemd-binfmt` doit rester inactive/skipped sur cette plateforme. Il prend effet au prochain démarrage WSL.
 
 ## Donnees privees
 

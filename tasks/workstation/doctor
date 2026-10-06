@@ -248,12 +248,6 @@ fi
 if [[ "${WORKSTATION_WSL:-0}" == 1 ]]; then
     section "WSL interoperability"
 
-    if [[ -e /proc/sys/fs/binfmt_misc/WSLInterop ]]; then
-        ok "WSLInterop handler registered"
-    else
-        fail "WSLInterop handler missing"
-    fi
-
     windows_cmd="$(command -v cmd.exe 2>/dev/null || true)"
     if [[ -z "$windows_cmd" && -x /mnt/c/Windows/System32/cmd.exe ]]; then
         # Login shells created through runuser can omit Windows paths even
@@ -261,16 +255,12 @@ if [[ "${WORKSTATION_WSL:-0}" == 1 ]]; then
         windows_cmd=/mnt/c/Windows/System32/cmd.exe
     fi
 
-    if [[ -n "$windows_cmd" ]] && "$windows_cmd" /c ver >/dev/null 2>&1; then
+    if [[ -n "$windows_cmd" ]] && (
+        cd /mnt/c && "$windows_cmd" /d /c 'exit 0'
+    ) >/dev/null 2>&1; then
         ok "Windows executable interoperability"
     else
         fail "Cannot execute Windows binaries from WSL"
-    fi
-
-    if systemctl is-active --quiet wsl-interop-fix.timer 2>/dev/null; then
-        ok "Temporary WSLInterop workaround timer active"
-    else
-        warn "WSLInterop workaround timer inactive or absent"
     fi
 
 fi

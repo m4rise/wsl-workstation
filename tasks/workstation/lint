@@ -24,13 +24,6 @@ done < <(
         -print0
 )
 
-# Validate the deployed WSL workaround as well when it exists on this machine.
-wsl_interop_script="/usr/local/sbin/ensure-wsl-interop"
-
-if [[ -f "$wsl_interop_script" ]]; then
-    bash_files+=("$wsl_interop_script")
-fi
-
 if ((${#bash_files[@]} > 0)); then
     printf '  Found %d Bash scripts\n' "${#bash_files[@]}"
 else

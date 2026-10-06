@@ -45,7 +45,9 @@ Les liens déclarés dans [le socle](../config.toml) et [la capacité GitHub](..
 
 Modifier la cible d'un lien modifie la source du dépôt. Un éditeur ou une application qui remplace le lien par un fichier ordinaire peut rompre ce suivi ; `devconfig` le signale. Aucun changement n'est conservé à distance avant commit et push.
 
-Les ressources déclarées dans [la capacité WSL](../config.wsl.toml) et [la capacité cloud](../config.cloud.toml) sont des copies système. Une modification directe du service, du timer, du script WSL ou des fichiers du dépôt APT Google Cloud ne remonte pas à sa source. Comparer les copies, reporter le changement voulu dans `system/`, puis réappliquer le bootstrap. Ne pas réappliquer avant d'avoir récupéré une modification locale utile.
+Les ressources déclarées dans [la capacité WSL](../config.wsl.toml) et [la capacité cloud](../config.cloud.toml) sont des copies système. Une modification directe du drop-in `/etc/systemd/system/systemd-binfmt.service.d/override.conf` ou des fichiers du dépôt APT Google Cloud ne remonte pas à sa source. Comparer les copies, reporter le changement voulu dans `system/`, puis réappliquer le bootstrap. Ne pas réappliquer avant d'avoir récupéré une modification locale utile.
+
+Après modification des sources système, appliquer `mise bootstrap --locked`, puis vérifier `workstation:config-audit --check`. Une modification de la condition WSL prend effet au prochain démarrage de la distribution.
 
 ## Configurations locales a examiner
 
