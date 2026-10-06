@@ -47,9 +47,7 @@ Modifier la cible d'un lien modifie la source du dépôt. Un éditeur ou une app
 
 Les ressources déclarées dans [la capacité WSL](../config.wsl.toml) et [la capacité cloud](../config.cloud.toml) sont des copies système. Une modification directe du drop-in `/etc/systemd/system/systemd-binfmt.service.d/override.conf` ou des fichiers du dépôt APT Google Cloud ne remonte pas à sa source. Comparer les copies, reporter le changement voulu dans `system/`, puis réappliquer le bootstrap. Ne pas réappliquer avant d'avoir récupéré une modification locale utile.
 
-Avec `wsl` sélectionné, le bootstrap complet retire aussi les trois artefacts de l'ancien watchdog d'interop via `state = "absent"`. Les étapes d'arrêt du timer et de rechargement/reset ciblé de systemd sont décrites dans [le cycle du bootstrap](ARCHITECTURE.md#cycle-du-bootstrap). WSLInterop reste une ressource native WSL, uniquement vérifiée par le doctor.
-
-Pour appliquer ces changements sur un poste installé, suivre [la procédure WSL](WSL.md), puis vérifier `workstation:config-audit --check`. Le guide explique aussi le cas d'un poste déjà conforme et le contrôle après shutdown.
+Après modification des sources système, appliquer `mise bootstrap --locked`, puis vérifier `workstation:config-audit --check`. Une modification de la condition WSL prend effet au prochain démarrage de la distribution.
 
 ## Configurations locales a examiner
 

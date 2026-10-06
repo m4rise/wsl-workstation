@@ -47,7 +47,7 @@ git status --short
 mise run workstation:config-audit
 ```
 
-Le premier audit sert à examiner les changements attendus. Si la PR change des ressources à provisionner, comparer les copies locales avant d'appliquer `mise bootstrap --locked`. Une nouvelle version d'outil peut demander `mise install --locked`. `git pull` récupère les sources ; il n'applique pas le provisionnement. Pour la capacité WSL, suivre [la procédure dédiée](WSL.md). Après application, ou directement si aucune dérive n'est attendue :
+Le premier audit sert à examiner les changements attendus. Si la PR change des ressources à provisionner, comparer les copies locales avant d'appliquer `mise bootstrap --locked`. Une nouvelle version d'outil peut demander `mise install --locked`. `git pull` récupère les sources ; il n'applique pas le provisionnement. Après application, ou directement si aucune dérive n'est attendue :
 
 ```bash
 mise run workstation:config-audit --check
@@ -118,7 +118,7 @@ Le test KeePassXC crée, modifie, capture, restaure et rouvre un coffre sans éc
 La CI `Quality` s'exécute sur les PR, les push vers `main`, chaque lundi et à la demande. Elle annule les runs précédents du même groupe. Ses actions sont fixées à leurs SHA, ses permissions restent `contents: read`, et elle n'utilise aucun secret personnel.
 
 1. Ubuntu 26.04 : lint, Gitleaks, tests ; export du commit, vérification du manifeste et des sources exportées ; archivage en conservant les modes exécutables.
-2. Windows : import de cette archive, vérification du manifeste, création d'Ubuntu 26.04 WSL et du compte `contributor`, installation générique depuis le snapshot puis personnelle avec migration d'un timer legacy inerte, second bootstrap sans dérive, config-audit, shell interactif et coffre KeePassXC fonctionnel. Après `wsl --shutdown`, nouvelle invocation avec identifiant de boot différent, systemd `running`, `systemd-binfmt` inactive/skipped et WSLInterop natif sain ; CMD et PowerShell fonctionnent avant et après shutdown.
+2. Windows : import de cette archive, vérification du manifeste, création d'Ubuntu 26.04 WSL et du compte `contributor`, installation générique depuis le snapshot puis personnelle, second bootstrap sans dérive, config-audit, shell interactif et coffre KeePassXC fonctionnel. Après `wsl --shutdown`, systemd doit être `running` et le doctor doit réussir.
 
 La CI ne valide pas les comptes réels, la MFA, Docker Desktop, l'interface graphique KeePassXC ni les sauvegardes hors ligne. La [Validation pas à pas](VALIDATION.md) relie le run au bon commit et sépare la contribution publique de la reprise personnelle facultative. Le diagnostic complet du poste vient après ses connexions natives : `mise run workstation:doctor`.
 

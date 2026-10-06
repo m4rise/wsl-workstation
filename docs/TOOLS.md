@@ -36,7 +36,7 @@ APT fournit les prérequis système : certificats, curl, Git, OpenSSH, Zsh, outi
 | `cloud` | gcloud et dépôt APT Google | Package Ubuntu/Google courant |
 | `codex` | Codex CLI | Installateur officiel, mise à jour explicite |
 | `docker` | CLI fournie par Docker Desktop, Compose | Hôte Windows |
-| `wsl` | Validation WSLInterop natif et drop-in systemd-binfmt | Sources versionnées |
+| `wsl` | Interop Windows native et condition systemd-binfmt | Sources versionnées |
 | `secrets` | fnox, age et age-keygen | `mise.secrets.lock` |
 | `vault` | KeePassXC complet, keepassxc-cli | APT Ubuntu |
 

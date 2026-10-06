@@ -31,13 +31,7 @@ Chaque capacité émet un indicateur `WORKSTATION_<NOM>` utilisé par le bootstr
 
 `mise bootstrap --update --locked` applique les ressources déclaratives, les dotfiles, le shell de connexion, les outils verrouillés puis la tâche `bootstrap`. Le profil cloud ajoute sa clé publique et son dépôt APT en phase `pre-packages`. `--update` rafraîchit ensuite les index nécessaires à `google-cloud-cli`.
 
-La capacité WSL conserve `WORKSTATION_WSL=1` et laisse WSL gérer nativement WSLInterop. Le doctor valide le handler (`enabled`, `interpreter /init`, `flags: PF`) et l'exécution Windows depuis `/mnt/c`. Le drop-in `system/wsl/systemd-binfmt.override.conf` impose `ConditionVirtualization=!wsl` : WSL protège le registre binfmt partagé, et laisser `systemd-binfmt` le flusher provoquerait un échec et un faux état systemd `degraded`. Sous WSL, le service doit rester inactive/skipped.
-
-Lors d'un bootstrap complet, le hook `pre-packages` arrête et désactive le timer legacy, puis mise supprime ses trois artefacts déclarés `state = "absent"` et installe le drop-in. La tâche finale recharge systemd seulement si une des unités concernées le demande, puis efface uniquement l'échec éventuel de `systemd-binfmt.service`. Un second passage ne change plus cet état. Utiliser le bootstrap complet pour cette migration, car `bootstrap files apply` seul ne lance pas ces étapes de cycle de vie. Un futur changement amont pourra permettre de retirer l'override après validation dans la vraie CI WSL, y compris après shutdown.
-
-Les procédures humaines sont regroupées dans [WSL](WSL.md) et [CI locale](CI-LOCAL.md). La variable `wsl_source_dir` résout le chemin depuis le fichier déclarant la capacité ; le hook transmet explicitement son indicateur. Les tests protègent ainsi la configuration globale et la sélection temporaire `-E wsl` avec la version mise utilisée en CI.
-
-Changer de profil modifie l'état désiré des ressources actives. Cela n'autorise pas leur désinstallation automatique. Toute suppression de package ou de service fait l'objet d'une opération explicite.
+La capacité WSL conserve `WORKSTATION_WSL=1`. WSL gère nativement l'interop Windows ; le doctor vérifie l'exécution de CMD depuis `/mnt/c`. La seule adaptation système est le drop-in déclaratif `ConditionVirtualization=!wsl` : le registre binfmt est protégé par WSL, et `systemd-binfmt` doit rester inactive/skipped sur cette plateforme. Il prend effet au prochain démarrage WSL.
 
 ## Donnees privees
 

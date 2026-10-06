@@ -1,8 +1,8 @@
 # Valider la CI localement
 
-[README](../README.md) · [Validation](VALIDATION.md) · [Maintenance](MAINTENANCE.md) · [Politique WSL](WSL.md)
+[README](../README.md) · [Validation](VALIDATION.md) · [Maintenance](MAINTENANCE.md)
 
-Ce parcours permet de reproduire les contrôles sans crédit GitHub Actions. Il utilise un conteneur Linux et une nouvelle distribution WSL, avec des données fictives. Les vérifications des actions GitHub elles-mêmes et un nouveau boot de la VM WSL restent propres au runner Windows.
+Ce parcours permet de reproduire les contrôles sans crédit GitHub Actions. Il utilise un conteneur Linux et une nouvelle distribution WSL, avec des données fictives. Le redémarrage local concerne uniquement la distro jetable ; le workflow Windows redémarre la VM WSL.
 
 Prérequis : le checkout de ce projet, ses outils de test, Docker Desktop accessible depuis WSL, et Windows avec `wsl --install --name` disponible. Le conteneur et la distro téléchargent des packages et des outils ; prévoir réseau et espace disque. Garder les terminaux ouverts pour conserver les variables du parcours. Exécuter chaque étape dans le terminal indiqué et s'arrêter au premier échec.
 
@@ -130,16 +130,17 @@ wsl --distribution $distro --user root --cd / -- bash -c "bash $checkout/.github
 if ($LASTEXITCODE -ne 0) { throw 'Bootstrap CI WSL echoue' }
 wsl --terminate $distro
 if ($LASTEXITCODE -ne 0) { throw 'Terminaison WSL echouee' }
-wsl --distribution $distro --user root --cd / -- bash -c "bash /home/contributor/.config/mise/.github/scripts/check-wsl.sh --after-terminate 2>&1" |
-    Tee-Object -FilePath (Join-Path $ciWindows 'wsl-restart.log')
-if ($LASTEXITCODE -ne 0) { throw 'Verification apres redemarrage echouee' }
+wsl --distribution $distro --user root --cd / -- timeout 120 systemctl is-system-running --wait
+if ($LASTEXITCODE -ne 0) { throw 'Systemd non operationnel apres redemarrage' }
+wsl --distribution $distro --user root --cd / -- runuser -l contributor -c 'cd ~/.config/mise && ~/.local/bin/mise run workstation:doctor --bootstrap'
+if ($LASTEXITCODE -ne 0) { throw 'Doctor echoue apres redemarrage' }
 ```
 
 La redirection `2>&1` se fait dans Bash pour conserver les messages informatifs de stderr sans les transformer en erreurs PowerShell 5. Le code de sortie WSL reste contrôlé après chaque pipeline.
 
-`/var/tmp` conserve l'export si la distro s'arrête entre deux commandes. `--no-same-owner` donne les fichiers extraits à root pour la vérification Git, comme dans la CI. Le script crée le compte fictif `contributor`, applique les profils générique et personnel, migre un timer legacy inerte et contrôle la convergence. Le second script vérifie un nouveau démarrage de PID 1, systemd `running`, le skip de `systemd-binfmt`, l'interop native, CMD et PowerShell, puis refait l'audit et le doctor sans bootstrap réparateur.
+`/var/tmp` conserve l'export si la distro s'arrête entre deux commandes. `--no-same-owner` donne les fichiers extraits à root pour la vérification Git, comme dans la CI. Le script crée le compte fictif `contributor`, applique les profils générique et personnel, contrôle la convergence et exécute les tests. Après redémarrage, systemd et le doctor doivent réussir.
 
-Ce test termine **uniquement la distro jetable**. Les autres distributions maintiennent le kernel partagé en vie : il ne prouve pas un nouveau boot de la VM WSL. Le job Windows `Quality` utilise `wsl --shutdown` et vérifie le changement du `boot_id`. Pour valider un shutdown complet sur le poste, suivre [le parcours WSL](WSL.md#3-verifier-apres-un-shutdown-complet) après avoir enregistré le travail en cours.
+Ce test termine **uniquement la distro jetable**. Le job Windows `Quality` utilise `wsl --shutdown` pour arrêter la VM entière.
 
 ## 5. Conserver les preuves et nettoyer
 

@@ -1,18 +1,3 @@
-[vars]
-wsl_source_dir = "{{ config_source | dirname }}/system/wsl"
-
-[bootstrap.hooks]
-pre-packages = "WORKSTATION_WSL=1 bash {{ vars.wsl_source_dir | quote }}/migrate-legacy-interop"
-
-[bootstrap.files."/usr/local/sbin/ensure-wsl-interop"]
-state = "absent"
-
-[bootstrap.files."/etc/systemd/system/wsl-interop-fix.service"]
-state = "absent"
-
-[bootstrap.files."/etc/systemd/system/wsl-interop-fix.timer"]
-state = "absent"
-
 [bootstrap.directories."/etc/systemd/system/systemd-binfmt.service.d"]
 owner = "root"
 group = "root"

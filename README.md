@@ -51,7 +51,7 @@ La sélection utilise les environnements natifs mise, enregistrés dans `miserc.
 | `cloud` | Dépôt APT Google, Google Cloud CLI, plugin et diagnostic |
 | `codex` | Installation officielle de Codex et maintenance |
 | `docker` | Diagnostic et alias Docker Desktop ; aucun moteur Linux installé |
-| `wsl` | Compatibilité Ubuntu/WSL, validation WSLInterop et adaptation systemd-binfmt |
+| `wsl` | Interop Windows native et adaptation systemd-binfmt |
 | `secrets` | fnox + age et commandes de sauvegarde/restauration |
 | `vault` | KeePassXC via APT ; CLI utilisable sans écran, interface graphique facultative avec WSLg |
 
@@ -67,9 +67,7 @@ mise bootstrap --update --locked
 mise run profile:select generic
 ```
 
-La sélection ne désinstalle pas les outils et ne supprime pas les services déjà installés. Pour une session temporaire : `mise -E wsl,github bootstrap --update --locked`. La sélection personnelle conserve la capacité `wsl` : WSL gère nativement WSLInterop, le doctor valide son état et le bootstrap empêche `systemd-binfmt` de s'exécuter sous WSL. Il retire aussi les anciens fichiers et le watchdog d'interop.
-
-Sur un poste déjà installé, suivre [la migration WSL et ses contrôles après redémarrage](docs/WSL.md). Le guide distingue Ubuntu de PowerShell Windows, donne les résultats attendus et explique le code de sortie normal du service skipped.
+La sélection ne désinstalle pas les outils déjà installés. Pour une session temporaire : `mise -E wsl,github bootstrap --update --locked`. `personal` inclut `wsl`. WSL gère l'interop Windows nativement ; cette capacité installe uniquement une condition systemd qui empêche `systemd-binfmt` d'échouer sur le registre protégé par WSL. Après son premier bootstrap, enregistrer le travail puis lancer `wsl --shutdown` dans PowerShell Windows et rouvrir Ubuntu : cela arrête toutes les distributions WSL et applique la condition au prochain démarrage. `mise run workstation:doctor --bootstrap` vérifie ensuite l'exécution Windows.
 
 ## Identite et restauration
 
@@ -112,7 +110,7 @@ mise run workstation:check
 
 `-E secrets` ajoute les outils cryptographiques pour cette commande sans changer le profil enregistré. Les tests utilisent des données fictives et des répertoires temporaires ; ils ne restaurent rien dans le compte courant.
 
-La CI applique ces contrôles sur Ubuntu 26.04, exporte le commit et teste les sources exportées. Un second job installe **cet export dans une vraie distribution Ubuntu 26.04 WSL** sur Windows : bootstrap générique avec snapshot shell, migration d'un timer legacy inerte, activation des capacités personnelles, seconde application puis contrôle de convergence et WSLInterop. Après un `wsl --shutdown`, une nouvelle invocation vérifie un identifiant de boot différent, systemd `running`, `systemd-binfmt` inactive/skipped et l'exécution de CMD et PowerShell. Docker Desktop, les véritables comptes et l'ouverture graphique du coffre restent à valider sur le poste. La CI se déclenche sur les PR, `main`, chaque semaine et manuellement.
+La CI applique ces contrôles sur Ubuntu 26.04, exporte le commit et teste les sources exportées. Un second job installe **cet export dans une vraie distribution Ubuntu 26.04 WSL** sur Windows : bootstrap générique avec snapshot shell, activation des capacités personnelles, seconde application et contrôle de convergence. Après un `wsl --shutdown`, elle vérifie que systemd est opérationnel et relance le doctor. Docker Desktop, les véritables comptes et l'ouverture graphique du coffre restent à valider sur le poste. La CI se déclenche sur les PR, `main`, chaque semaine et manuellement.
 
 Sans crédit Actions, [reproduire les contrôles en local](docs/CI-LOCAL.md) dans un conteneur Ubuntu 26.04 et une WSL jetable. Ce parcours fournit les commandes d'export, de bootstrap, de redémarrage ciblé et de nettoyage. Il ne remplace pas les deux checks distants exigés avant fusion.
 
@@ -125,7 +123,6 @@ La publication se prépare dans un nouveau dépôt à historique vide. Le dépô
 - [Outils](docs/TOOLS.md)
 - [Maintenance, tests et publication](docs/MAINTENANCE.md)
 - [Validation pas à pas](docs/VALIDATION.md)
-- [Politique WSL et migration](docs/WSL.md)
 - [CI locale sans crédit Actions](docs/CI-LOCAL.md)
 - [Contribution](CONTRIBUTING.md)
 - [Sécurité](SECURITY.md)
