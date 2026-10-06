@@ -125,15 +125,17 @@ wsl --distribution $distro --user root --cd / -- mkdir -p /var/tmp/workstation-e
 if ($LASTEXITCODE -ne 0) { throw 'Creation du repertoire echouee' }
 wsl --distribution $distro --user root --cd / -- tar --no-same-owner -xzf $archiveLinux -C /var/tmp/workstation-export
 if ($LASTEXITCODE -ne 0) { throw 'Extraction echouee' }
-wsl --distribution $distro --user root --cd / -- bash "$checkout/.github/scripts/bootstrap-wsl.sh" $checkout 2>&1 |
+wsl --distribution $distro --user root --cd / -- bash -c "bash $checkout/.github/scripts/bootstrap-wsl.sh $checkout 2>&1" |
     Tee-Object -FilePath (Join-Path $ciWindows 'wsl-bootstrap.log')
 if ($LASTEXITCODE -ne 0) { throw 'Bootstrap CI WSL echoue' }
 wsl --terminate $distro
 if ($LASTEXITCODE -ne 0) { throw 'Terminaison WSL echouee' }
-wsl --distribution $distro --user root --cd / -- bash /home/contributor/.config/mise/.github/scripts/check-wsl.sh --after-terminate 2>&1 |
+wsl --distribution $distro --user root --cd / -- bash -c "bash /home/contributor/.config/mise/.github/scripts/check-wsl.sh --after-terminate 2>&1" |
     Tee-Object -FilePath (Join-Path $ciWindows 'wsl-restart.log')
 if ($LASTEXITCODE -ne 0) { throw 'Verification apres redemarrage echouee' }
 ```
+
+La redirection `2>&1` se fait dans Bash pour conserver les messages informatifs de stderr sans les transformer en erreurs PowerShell 5. Le code de sortie WSL reste contrôlé après chaque pipeline.
 
 `/var/tmp` conserve l'export si la distro s'arrête entre deux commandes. `--no-same-owner` donne les fichiers extraits à root pour la vérification Git, comme dans la CI. Le script crée le compte fictif `contributor`, applique les profils générique et personnel, migre un timer legacy inerte et contrôle la convergence. Le second script vérifie un nouveau démarrage de PID 1, systemd `running`, le skip de `systemd-binfmt`, l'interop native, CMD et PowerShell, puis refait l'audit et le doctor sans bootstrap réparateur.
 
