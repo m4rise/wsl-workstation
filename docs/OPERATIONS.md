@@ -351,4 +351,3 @@ En cas de compromission, révoquer d'abord les accès concernés. Changer la cl�
 `sysupdate` met Ubuntu à jour. `devupdate` actualise mise, ses outils, les repos shell et Codex si activé. Ces opérations peuvent modifier les lockfiles : examiner et tester les changements avant commit. `devclean` inspecte les installations supprimables et nettoie le cache ; `dockerclean` ne supprime pas les volumes.
 
 Après le premier bootstrap avec `wsl`, enregistrer le travail puis exécuter `wsl --shutdown` dans PowerShell Windows et rouvrir Ubuntu. Cela arrête toutes les distributions WSL. La condition installée empêche `systemd-binfmt` de s'exécuter sous WSL ; son état inactive/skipped est attendu. Vérifier ensuite `systemctl is-system-running` et `mise run workstation:doctor --bootstrap`. L'agent SSH peut avoir perdu ses clés : utiliser `sshunlock` si la capacité GitHub est active.
-
