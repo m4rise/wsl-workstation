@@ -43,6 +43,8 @@ Les liens déclarés dans [le socle](../config.toml) et [la capacité GitHub](..
 | `~/.gnupg/gpg-agent.conf` | [Agent GPG](../dotfiles/.gnupg/gpg-agent.conf) |
 | `~/.keychainrc` | [Keychain](../dotfiles/.keychainrc), capacité GitHub |
 
+Le lien SDK de VS Code Agent Host est provisionné par `scripts/codex-agent-host.sh` et vérifié par `workstation:doctor` lorsque `codex` et `wsl` sont actifs. L'export de la variable provient de `dotfiles/.zprofile`. Voir [Outils](TOOLS.md#codex-dans-vs-code-agents-wsl).
+
 Modifier la cible d'un lien modifie la source du dépôt. Un éditeur ou une application qui remplace le lien par un fichier ordinaire peut rompre ce suivi ; `devconfig` le signale. Aucun changement n'est conservé à distance avant commit et push.
 
 Les ressources déclarées dans [la capacité WSL](../config.wsl.toml) et [la capacité cloud](../config.cloud.toml) sont des copies système. Une modification directe du drop-in `/etc/systemd/system/systemd-binfmt.service.d/override.conf` ou des fichiers du dépôt APT Google Cloud ne remonte pas à sa source. Comparer les copies, reporter le changement voulu dans `system/`, puis réappliquer le bootstrap. Ne pas réappliquer avant d'avoir récupéré une modification locale utile.

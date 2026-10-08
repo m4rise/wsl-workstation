@@ -40,6 +40,16 @@ APT fournit les prérequis système : certificats, curl, Git, OpenSSH, Zsh, outi
 | `secrets` | fnox, age et age-keygen | `mise.secrets.lock` |
 | `vault` | KeePassXC complet, keepassxc-cli | APT Ubuntu |
 
+### Codex dans VS Code Agents (WSL)
+
+La combinaison des capacités `codex` et `wsl` crée le lien `~/.local/share/vscode-codex-sdk/node_modules/@openai/codex-linux-x64/vendor/x86_64-unknown-linux-musl/bin/codex` vers `~/.local/bin/codex`. Le bootstrap et `codex:update` valident ce lien à chaque passage. Aucune seconde installation npm n'est nécessaire.
+
+Le `~/.zprofile` géré par mise expose `VSCODE_AGENT_HOST_CODEX_SDK_ROOT` lorsque le lien est valide. VS Code Agent Host peut ainsi lancer le même CLI standalone, mais cette surcharge relève d'une API interne expérimentale : versions, structure et protocole peuvent évoluer. Le fournisseur `vscode-proxy` peut également filtrer les modèles indépendamment de la version du CLI.
+
+Après mise à jour, démarrer une nouvelle session Agent Host : les processus existants ne se mettent pas à jour à chaud. Contrôles : `mise run codex:install`, `mise run workstation:doctor`, `zsh -lc 'printenv VSCODE_AGENT_HOST_CODEX_SDK_ROOT'`, puis `pgrep -af 'codex.*app-server'` pendant une session Codex Agents active.
+
+Pour revenir au SDK géré par VS Code, retirer uniquement le lien symbolique généré sous `~/.local/share/vscode-codex-sdk` et redémarrer Agent Host ; `.zprofile` cesse alors d'exporter la variable. Nettoyer séparément toute injection manuelle antérieure dans `server-env-setup` ou `WSLENV` si elle existe, sans toucher aux autres réglages.
+
 Le profil secrets utilise le backend explicite `github:jdx/fnox` et le backend aqua d'age. Les URL, empreintes et provenances sont dans le lockfile. `fnox` gère le chiffrement des entrées ; `age-keygen` crée une identité indépendante. Les tâches ne mettent pas les secrets dans l'environnement global.
 
 KeePassXC stocke les mots de passe humains dans un fichier chiffré. Son interface graphique nécessite WSLg ; `keepassxc-cli` crée, ouvre et modifie les coffres sans écran ni WSLg. Le paquet Ubuntu `keepassxc-full` inclut toutefois les bibliothèques Qt et l'application graphique : « sans interface » décrit l'exécution de la CLI, pas un paquet sans dépendances graphiques. Aucun mot de passe maître n'est transmis par argument de commande ou enregistré dans la configuration du projet. Voir [utilisation en terminal](OPERATIONS.md#keepassxc-sans-interface).

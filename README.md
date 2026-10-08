@@ -49,7 +49,7 @@ La sélection utilise les environnements natifs mise, enregistrés dans `miserc.
 | --- | --- |
 | `github` | GitHub CLI, Keychain, plugin shell et contrôle des accès |
 | `cloud` | Dépôt APT Google, Google Cloud CLI, plugin et diagnostic |
-| `codex` | Installation officielle de Codex et maintenance |
+| `codex` | Installation officielle de Codex et maintenance ; avec `wsl`, SDK Agent Host lié au CLI |
 | `docker` | Diagnostic et alias Docker Desktop ; aucun moteur Linux installé |
 | `wsl` | Interop Windows native et adaptation systemd-binfmt |
 | `secrets` | fnox + age et commandes de sauvegarde/restauration |
@@ -66,6 +66,8 @@ mise bootstrap --update --locked
 # Revenir à la sélection générique.
 mise run profile:select generic
 ```
+
+L'association `codex` + `wsl` configure le SDK Codex Agent Host pour réutiliser le standalone. Voir [Outils](docs/TOOLS.md#codex-dans-vs-code-agents-wsl).
 
 La sélection ne désinstalle pas les outils déjà installés. Pour une session temporaire : `mise -E wsl,github bootstrap --update --locked`. `personal` inclut `wsl`. WSL gère l'interop Windows nativement ; cette capacité installe uniquement une condition systemd qui empêche `systemd-binfmt` d'échouer sur le registre protégé par WSL. Après son premier bootstrap, enregistrer le travail puis lancer `wsl --shutdown` dans PowerShell Windows et rouvrir Ubuntu : cela arrête toutes les distributions WSL et applique la condition au prochain démarrage. `mise run workstation:doctor --bootstrap` vérifie ensuite l'exécution Windows.
 
