@@ -1,4 +1,5 @@
 """Test the Codex Agent Host symlink with a disposable fake CLI."""
+
 import os
 import subprocess
 import tempfile
@@ -28,7 +29,9 @@ class CodexAgentHostTests(unittest.TestCase):
         self.cli.symlink_to(release)
 
     def run_task(self, mode="ensure"):
-        return subprocess.run(["bash", str(SCRIPT), mode], env=self.env, capture_output=True, text=True)
+        return subprocess.run(
+            ["bash", str(SCRIPT), mode], env=self.env, capture_output=True, text=True
+        )
 
     def test_idempotent_and_upgrade_follows_stable_cli_path(self):
         self.install_cli("0.161.0")
