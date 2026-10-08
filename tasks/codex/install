@@ -13,6 +13,9 @@ if [[ -x "$codex_bin" ]]; then
     echo
     echo "==> Codex CLI already installed:"
     "$codex_bin" --version
+    if [[ "${WORKSTATION_WSL:-0}" == 1 ]]; then
+        bash "$repo_root/scripts/codex-agent-host.sh" ensure
+    fi
     exit 0
 fi
 

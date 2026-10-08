@@ -33,3 +33,7 @@ fi
 echo
 echo "==> Codex CLI ready:"
 "$codex_bin" --version
+
+if [[ "${WORKSTATION_WSL:-0}" == 1 ]]; then
+    bash "$repo_root/scripts/codex-agent-host.sh" ensure
+fi

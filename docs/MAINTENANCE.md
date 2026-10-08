@@ -58,7 +58,7 @@ Pour remplacer un ancien bootstrap privé déjà installé, partir de l'historiq
 
 ## Versions et changements
 
-Les commandes quotidiennes `updateall` et `devupdate` conservent leur fonctionnement : mise, outils, dépôts shell et Codex actif sont mis à jour. Elles peuvent changer les lockfiles ; examiner ces changements avant commit. Elles ne capturent aucune configuration et ne font aucun commit/push.
+Les commandes quotidiennes `updateall` et `devupdate` conservent leur fonctionnement : mise, outils, dépôts shell et Codex actif sont mis à jour. Avec `codex` et `wsl`, la mise à jour vérifie aussi le lien du [SDK Agent Host](TOOLS.md#codex-dans-vs-code-agents-wsl) vers le CLI standalone. Redémarrer les sessions Agent Host pour utiliser le nouveau binaire. Elles peuvent changer les lockfiles ; examiner ces changements avant commit. Elles ne capturent aucune configuration et ne font aucun commit/push.
 
 Pour actualiser uniquement les versions verrouillées, sans mise à jour des packages système ou du shell :
 

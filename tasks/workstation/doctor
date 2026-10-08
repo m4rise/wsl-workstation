@@ -2,6 +2,7 @@
 #MISE description="Validate workstation tooling and integrations"
 
 set -uo pipefail
+repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
 
 bootstrap_only=0
 if [[ "${1:-}" == --bootstrap && $# == 1 ]]; then
@@ -297,6 +298,13 @@ if [[ "${WORKSTATION_CODEX:-0}" == 1 ]]; then
         fail "Codex CLI unavailable"
     fi
 
+    if [[ "${WORKSTATION_WSL:-0}" == 1 ]]; then
+        if bash "$repo_root/scripts/codex-agent-host.sh" check >/dev/null 2>&1; then
+            ok "VS Code Codex Agent Host link resolves to standalone CLI"
+        else
+            fail "Codex Agent Host link missing or invalid (mise run codex:install)"
+        fi
+    fi
 fi
 
 section "Summary"
