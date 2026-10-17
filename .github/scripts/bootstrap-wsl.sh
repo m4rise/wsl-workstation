@@ -56,6 +56,26 @@ test ! -e /home/contributor/.local/bin/codex
 test ! -e /home/contributor/.config/git/identity.conf
 runuser -l contributor -c '! ~/.local/bin/mise which gh'
 
+# A generic installation must reject the explicit common agentic prerequisites.
+diagnostic="$(mktemp)"
+if runuser -l contributor -c 'cd ~/.config/mise && ~/.local/bin/mise run workstation:doctor --agentic' >"$diagnostic" 2>&1; then
+    echo "Expected --agentic to refuse missing capabilities on generic." >&2
+    rm -f "$diagnostic"
+    exit 1
+fi
+grep -F '[FAIL] Capability codex selected' "$diagnostic"
+grep -F '[FAIL] Capability docker selected' "$diagnostic"
+rm -f "$diagnostic"
+
+# Public lot 1 path: existing capabilities, same bootstrap, then convergence.
+runuser -l contributor -c 'cd ~/.config/mise && ~/.local/bin/mise run profile:select codex wsl docker'
+runuser -l contributor -c 'cd ~/.config/mise && ~/.local/bin/mise bootstrap --update --locked --yes'
+runuser -l contributor -c 'cd ~/.config/mise && ~/.local/bin/mise bootstrap --locked --yes'
+runuser -l contributor -c 'cd ~/.config/mise && ~/.local/bin/mise bootstrap status --missing'
+runuser -l contributor -c 'cd ~/.config/mise && ~/.local/bin/mise run workstation:doctor --bootstrap'
+runuser -l contributor -c 'cd ~/.config/mise && ~/.local/bin/mise exec -- bwrap --unshare-user --unshare-pid --unshare-net --ro-bind / / --proc /proc --dev /dev /usr/bin/true'
+dpkg-query -W bubblewrap libatomic1 dbus-user-session libpam-systemd
+
 # Exercise the complete personal capability set with the same fresh user,
 # including the WSL policy, but without personal authentication.
 runuser -l contributor -c 'cd ~/.config/mise && ~/.local/bin/mise run profile:select personal'

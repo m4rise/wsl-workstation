@@ -8,6 +8,7 @@ import json
 import subprocess
 import sys
 import tempfile
+import tomllib
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -25,6 +26,20 @@ finally:
 
 
 class BootstrapTests(unittest.TestCase):
+    def test_common_runtime_packages_use_existing_capabilities(self):
+        root = SCRIPTS.parent
+        configs = {
+            name: tomllib.loads((root / name).read_text())
+            for name in ("config.toml", "config.codex.toml", "config.wsl.toml")
+        }
+        base = configs["config.toml"]["bootstrap"]["packages"]
+        self.assertIn("apt:libatomic1", base)
+        self.assertNotIn("apt:bubblewrap", base)
+        self.assertNotIn("apt:dbus-user-session", base)
+        self.assertIn("apt:bubblewrap", configs["config.codex.toml"]["bootstrap"]["packages"])
+        self.assertIn("apt:dbus-user-session", configs["config.wsl.toml"]["bootstrap"]["packages"])
+        self.assertFalse((root / "config.agentic.toml").exists())
+
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory(prefix="workstation-installer-")
         self.addCleanup(self.temporary.cleanup)

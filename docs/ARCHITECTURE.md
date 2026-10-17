@@ -31,7 +31,9 @@ Chaque capacité émet un indicateur `WORKSTATION_<NOM>` utilisé par le bootstr
 
 `mise bootstrap --update --locked` applique les ressources déclaratives, les dotfiles, le shell de connexion, les outils verrouillés puis la tâche `bootstrap`. Le profil cloud ajoute sa clé publique et son dépôt APT en phase `pre-packages`. `--update` rafraîchit ensuite les index nécessaires à `google-cloud-cli`.
 
-La capacité WSL conserve `WORKSTATION_WSL=1`. WSL gère nativement l'interop Windows ; le doctor vérifie l'exécution de CMD depuis `/mnt/c`. La seule adaptation système est le drop-in déclaratif `ConditionVirtualization=!wsl` : le registre binfmt est protégé par WSL, et `systemd-binfmt` doit rester inactive/skipped sur cette plateforme. Il prend effet au prochain démarrage WSL.
+La capacité WSL conserve `WORKSTATION_WSL=1`. WSL gère nativement l'interop Windows ; le doctor vérifie l'exécution de `cmd.exe`. La capacité assure aussi la présence de la session utilisateur DBus/PAM via `dbus-user-session`. L’adaptation de service est le drop-in déclaratif `ConditionVirtualization=!wsl` : le registre binfmt est protégé par WSL, et `systemd-binfmt` doit rester inactive/skipped sur cette plateforme. Il prend effet au prochain démarrage WSL.
+
+Le mode `workstation:doctor --agentic` exige la composition `codex wsl docker` sans créer de capacité. Il sonde uniquement les mécanismes communs du poste ; les frontières, permissions, oracles et validations de la boucle Sulu appartiennent à `sulu-cms-platform`. Le profil générique ne dépend pas de ces capacités et n'exige pas Docker Desktop ou systemd utilisateur. Voir [les contrôles](TOOLS.md#diagnostic-des-prerequis-communs).
 
 ## Donnees privees
 

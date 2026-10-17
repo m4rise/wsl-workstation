@@ -58,7 +58,7 @@ Pour remplacer un ancien bootstrap privé déjà installé, partir de l'historiq
 
 ## Versions et changements
 
-Les commandes quotidiennes `updateall` et `devupdate` conservent leur fonctionnement : mise, outils, dépôts shell et Codex actif sont mis à jour. Avec `codex` et `wsl`, la mise à jour vérifie aussi le lien du [SDK Agent Host](TOOLS.md#codex-dans-vs-code-agents-wsl) vers le CLI standalone. Redémarrer les sessions Agent Host pour utiliser le nouveau binaire. Elles peuvent changer les lockfiles ; examiner ces changements avant commit. Elles ne capturent aucune configuration et ne font aucun commit/push.
+Les commandes quotidiennes `updateall` et `devupdate` conservent leur fonctionnement : mise, outils, dépôts shell et Codex actif sont mis à jour. Avec `codex` et `wsl`, la mise à jour vérifie aussi le lien du [SDK Agent Host](TOOLS.md#codex-dans-vs-code-agents-wsl) vers le CLI standalone. Redémarrer les sessions Agent Host pour utiliser le nouveau binaire. Pour le parcours `codex wsl docker`, relancer aussi `mise run workstation:doctor --agentic` après mise à jour ; les validations de la boucle restent dans le projet consommateur. Aucun pin historique ni verrou inter-dépôts n’est ajouté. Les commandes de mise à jour peuvent changer les lockfiles ; examiner ces changements avant commit. Elles ne capturent aucune configuration et ne font aucun commit/push.
 
 Pour actualiser uniquement les versions verrouillées, sans mise à jour des packages système ou du shell :
 
@@ -118,7 +118,7 @@ Le test KeePassXC crée, modifie, capture, restaure et rouvre un coffre sans éc
 La CI `Quality` s'exécute sur les PR, les push vers `main`, chaque lundi et à la demande. Elle annule les runs précédents du même groupe. Ses actions sont fixées à leurs SHA, ses permissions restent `contents: read`, et elle n'utilise aucun secret personnel.
 
 1. Ubuntu 26.04 : lint, Gitleaks, tests ; export du commit, vérification du manifeste et des sources exportées ; archivage en conservant les modes exécutables.
-2. Windows : import de cette archive, vérification du manifeste, création d'Ubuntu 26.04 WSL et du compte `contributor`, installation générique depuis le snapshot puis personnelle, second bootstrap sans dérive, config-audit, shell interactif et coffre KeePassXC fonctionnel. Après `wsl --shutdown`, systemd doit être `running` et le doctor doit réussir.
+2. Windows : import de cette archive, vérification du manifeste, création d'Ubuntu 26.04 WSL et du compte `contributor`, installation générique depuis le snapshot, composition `codex wsl docker` puis profil personnel, bootstraps répétés sans dérive, config-audit, shell interactif et coffre KeePassXC fonctionnel. Après `wsl --shutdown`, systemd doit être `running` et le doctor doit réussir.
 
 La CI ne valide pas les comptes réels, la MFA, Docker Desktop, l'interface graphique KeePassXC ni les sauvegardes hors ligne. La [Validation pas à pas](VALIDATION.md) relie le run au bon commit et sépare la contribution publique de la reprise personnelle facultative. Le diagnostic complet du poste vient après ses connexions natives : `mise run workstation:doctor`.
 

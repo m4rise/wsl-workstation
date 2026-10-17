@@ -18,6 +18,10 @@ mise run workstation:doctor
 
 Les alias `devlint`, `devaudit` et `devdoctor` sont équivalents. Le résultat attendu est aucun échec ; lire les avertissements. Si KeePassXC n'est pas installé, son test est signalé comme ignoré ici et sera obligatoire dans le job WSL personnel. Cette étape ne restaure aucun secret sur ton compte.
 
+Pour le lot 1 workstation, suivre aussi le [parcours public des prérequis communs](../README.md#prerequis-communs-pour-une-boucle-agentique) avec un nouvel utilisateur, puis réappliquer `mise bootstrap --locked` et vérifier `mise bootstrap status --missing` et `workstation:config-audit --check`. Tester `workstation:doctor --bootstrap` puis `workstation:doctor --agentic` depuis un terminal WSL normal. Le second exige Docker Desktop démarré et intégré à cette distribution ; aucune inférence Codex n'est nécessaire. Ne pas lancer un bootstrap neuf sur le compte habituel pour simuler ce test.
+
+Les tests jetables couvrent les refus Ubuntu/architecture/WSL2, utilisateur root, capacités inactives, Bubblewrap absent ou bloqué, manager systemd et contrôleurs manquants, limites transitoires indisponibles, interop refusée, Docker absent/injoignable ou moteur différent, Node non chargeable ou masqué, et helper Codex absent. Ils vérifient aussi le profil générique et les mises à jour sans version historique imposée. Les sondes peuvent échouer dans une sandbox d'agent : conserver le refus et refaire le contrôle dans la session WSL de l'utilisateur.
+
 ## 2. Validation distante du bon commit
 
 Les modifications locales ne sont pas visibles par GitHub Actions. Sur un dépôt public, travailler dans son fork ; avant publication, utiliser le dépôt privé existant. Ne jamais rendre public son ancien historique. Se placer dans la branche de travail choisie, sans recréer une branche déjà existante :
@@ -63,7 +67,7 @@ gh run view "$run_id" --json url,headSha,conclusion,jobs
 gh run view "$run_id" --log-failed
 ```
 
-Les jobs `checks` et `bootstrap-wsl` doivent réussir. Le second installe les profils générique et personnel, vérifie leur convergence, l'audit et les tests WSL/KeePassXC. Après `wsl --shutdown`, il vérifie systemd `running` et relance le doctor. Le runner reste sur Windows pendant cet arrêt. Ce contrôle ne remplace pas la vérification locale de Docker Desktop et des comptes réels. Fournir le lien et le SHA, ou le journal d'échec : un succès sur un autre SHA ne valide pas les modifications courantes.
+Les jobs `checks` et `bootstrap-wsl` doivent réussir. Le second installe le profil générique, la composition `codex wsl docker` et le profil personnel, vérifie leur convergence, l'audit et les tests WSL/KeePassXC. Après `wsl --shutdown`, il vérifie systemd `running` et relance le doctor. Le runner reste sur Windows pendant cet arrêt. Ce contrôle ne remplace pas la vérification locale de Docker Desktop et des comptes réels. Fournir le lien et le SHA, ou le journal d'échec : un succès sur un autre SHA ne valide pas les modifications courantes.
 
 Si Actions est indisponible, conserver la PR en brouillon avec des commits `[skip ci]` et rapporter les résultats des contrôles locaux. Exécuter les deux jobs sur le SHA final avant fusion quand Actions redevient disponible.
 
