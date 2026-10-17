@@ -36,10 +36,11 @@ class ProfileTests(unittest.TestCase):
             for selection, active in [
                 ("generic", set()),
                 ("personal", capabilities),
+                ("codex wsl docker", {"codex", "wsl", "docker"}),
                 ("wsl", {"wsl"}),
             ]:
                 subprocess.run(
-                    ["python3", str(ROOT / "scripts/profile.py"), selection],
+                    ["python3", str(ROOT / "scripts/profile.py"), *selection.split()],
                     env=env,
                     cwd=root,
                     check=True,

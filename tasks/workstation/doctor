@@ -5,10 +5,16 @@ set -uo pipefail
 repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
 
 bootstrap_only=0
+runtime_args=()
 if [[ "${1:-}" == --bootstrap && $# == 1 ]]; then
     bootstrap_only=1
+    runtime_args=(--bootstrap)
+elif [[ "${1:-}" == --agentic && $# == 1 ]]; then
+    # Common prerequisites only: no account checks or model inference.
+    bootstrap_only=1
+    runtime_args=(--agentic)
 elif (($# > 0)); then
-    echo "Usage: workstation:doctor [--bootstrap]" >&2
+    echo "Usage: workstation:doctor [--bootstrap|--agentic]" >&2
     exit 2
 fi
 
@@ -42,6 +48,16 @@ check_command() {
         fail "$command_name not found"
     fi
 }
+
+section "Runtime prerequisites"
+runtime_status=0
+runtime_output="$(python3 "$repo_root/scripts/workstation-runtime.py" "${runtime_args[@]}")" || runtime_status=$?
+printf '%s\n' "$runtime_output"
+runtime_warnings="$(grep -c '^  \[WARN\]' <<<"$runtime_output" || true)"
+warnings=$((warnings + runtime_warnings))
+if ((runtime_status != 0)); then
+    fail "Runtime prerequisites incompatible; follow the diagnostics above"
+fi
 
 section "Core commands"
 
@@ -244,67 +260,6 @@ if [[ "${WORKSTATION_CLOUD:-0}" == 1 && "$bootstrap_only" == 0 ]]; then
         warn "No active Google Cloud account"
     fi
 
-fi
-
-if [[ "${WORKSTATION_WSL:-0}" == 1 ]]; then
-    section "WSL interoperability"
-
-    windows_cmd="$(command -v cmd.exe 2>/dev/null || true)"
-    if [[ -z "$windows_cmd" && -x /mnt/c/Windows/System32/cmd.exe ]]; then
-        # Login shells created through runuser can omit Windows paths even
-        # though WSL interoperability and the Windows mount are healthy.
-        windows_cmd=/mnt/c/Windows/System32/cmd.exe
-    fi
-
-    if [[ -n "$windows_cmd" ]] && (
-        cd /mnt/c && "$windows_cmd" /d /c 'exit 0'
-    ) >/dev/null 2>&1; then
-        ok "Windows executable interoperability"
-    else
-        fail "Cannot execute Windows binaries from WSL"
-    fi
-
-fi
-
-if [[ "${WORKSTATION_DOCKER:-0}" == 1 && "$bootstrap_only" == 0 ]]; then
-    section "Docker Desktop"
-
-    docker_path="$(command -v docker 2>/dev/null || true)"
-
-    if [[ -z "$docker_path" ]]; then
-        warn "Docker CLI unavailable"
-    elif [[ "$docker_path" == /mnt/* ]]; then
-        warn "Windows Docker CLI visible, but WSL integration is unavailable"
-    elif docker info >/dev/null 2>&1; then
-        ok "Docker daemon reachable through WSL integration"
-
-        if docker compose version >/dev/null 2>&1; then
-            ok "Docker Compose available"
-        else
-            fail "Docker Compose unavailable"
-        fi
-    else
-        warn "Docker CLI available but Docker daemon unreachable"
-    fi
-
-fi
-
-if [[ "${WORKSTATION_CODEX:-0}" == 1 ]]; then
-    section "Codex"
-
-    if command -v codex >/dev/null 2>&1; then
-        ok "$(codex --version)"
-    else
-        fail "Codex CLI unavailable"
-    fi
-
-    if [[ "${WORKSTATION_WSL:-0}" == 1 ]]; then
-        if bash "$repo_root/scripts/codex-agent-host.sh" check >/dev/null 2>&1; then
-            ok "VS Code Codex Agent Host link resolves to standalone CLI"
-        else
-            fail "Codex Agent Host link missing or invalid (mise run codex:install)"
-        fi
-    fi
 fi
 
 section "Summary"

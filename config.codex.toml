@@ -1,3 +1,6 @@
 
+[bootstrap.packages]
+"apt:bubblewrap" = "latest"
+
 [env]
 WORKSTATION_CODEX = "1"
