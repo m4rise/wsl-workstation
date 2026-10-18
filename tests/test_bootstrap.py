@@ -38,7 +38,6 @@ class BootstrapTests(unittest.TestCase):
         self.assertNotIn("apt:dbus-user-session", base)
         self.assertIn("apt:bubblewrap", configs["config.codex.toml"]["bootstrap"]["packages"])
         self.assertIn("apt:dbus-user-session", configs["config.wsl.toml"]["bootstrap"]["packages"])
-        self.assertFalse((root / "config.agentic.toml").exists())
 
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory(prefix="workstation-installer-")

@@ -33,7 +33,7 @@ Chaque capacité émet un indicateur `WORKSTATION_<NOM>` utilisé par le bootstr
 
 La capacité WSL conserve `WORKSTATION_WSL=1`. WSL gère nativement l'interop Windows ; le doctor vérifie l'exécution de `cmd.exe`. La capacité assure aussi la présence de la session utilisateur DBus/PAM via `dbus-user-session`. L’adaptation de service est le drop-in déclaratif `ConditionVirtualization=!wsl` : le registre binfmt est protégé par WSL, et `systemd-binfmt` doit rester inactive/skipped sur cette plateforme. Il prend effet au prochain démarrage WSL.
 
-Le mode `workstation:doctor --agentic` exige la composition `codex wsl docker` sans créer de capacité. Il sonde uniquement les mécanismes communs du poste ; les frontières, permissions, oracles et validations de la boucle Sulu appartiennent à `sulu-cms-platform`. Le profil générique ne dépend pas de ces capacités et n'exige pas Docker Desktop ou systemd utilisateur. Voir [les contrôles](TOOLS.md#diagnostic-des-prerequis-communs).
+Le diagnostic `workstation:doctor` utilise `scripts/workstation-runtime.py` pour Node et les capacités sélectionnées : Codex/Bubblewrap, systemd/interop WSL et Docker Desktop/Compose. `--bootstrap` omet les comptes et les sondes du daemon Docker/Compose. Le profil générique ne dépend pas des capacités facultatives ; aucune composition n’est imposée. Voir [les contrôles](TOOLS.md#diagnostic-du-poste).
 
 ## Donnees privees
 

@@ -36,7 +36,9 @@ class ProfileTests(unittest.TestCase):
             for selection, active in [
                 ("generic", set()),
                 ("personal", capabilities),
-                ("codex wsl docker", {"codex", "wsl", "docker"}),
+                ("codex", {"codex"}),
+                ("docker", {"docker"}),
+                ("codex wsl", {"codex", "wsl"}),
                 ("wsl", {"wsl"}),
             ]:
                 subprocess.run(

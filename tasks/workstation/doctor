@@ -9,12 +9,8 @@ runtime_args=()
 if [[ "${1:-}" == --bootstrap && $# == 1 ]]; then
     bootstrap_only=1
     runtime_args=(--bootstrap)
-elif [[ "${1:-}" == --agentic && $# == 1 ]]; then
-    # Common prerequisites only: no account checks or model inference.
-    bootstrap_only=1
-    runtime_args=(--agentic)
 elif (($# > 0)); then
-    echo "Usage: workstation:doctor [--bootstrap|--agentic]" >&2
+    echo "Usage: workstation:doctor [--bootstrap]" >&2
     exit 2
 fi
 

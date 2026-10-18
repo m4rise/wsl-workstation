@@ -10,7 +10,6 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-CONTROLLERS = {"cpu", "memory", "pids"}
 
 
 def run(*args, env=None):
@@ -35,8 +34,7 @@ def enabled(capability):
 
 
 class Runtime:
-    def __init__(self, agentic=False, bootstrap=False):
-        self.agentic = agentic
+    def __init__(self, bootstrap=False):
         self.bootstrap = bootstrap
         self.failures = 0
 
@@ -56,32 +54,18 @@ class Runtime:
             distro == "ubuntu 26.04",
             f"Ubuntu target: {distro}",
             "supported target is Ubuntu 26.04",
-            self.agentic,
         )
         self.check(
             platform.machine() == "x86_64",
             f"Architecture: {platform.machine()}",
             "install the x86-64 distribution and binaries",
-            self.agentic,
         )
         kernel = platform.release()
         self.check(
             "microsoft" in kernel.lower() and "wsl2" in kernel.lower(),
             f"WSL2 kernel: {kernel}",
             "in Windows run wsl --list --verbose; update WSL and select version 2",
-            self.agentic,
         )
-        if self.agentic:
-            self.check(
-                os.getuid() != 0, "Non-root Linux user", "open your Linux user session", True
-            )
-            for capability in ("codex", "wsl", "docker"):
-                self.check(
-                    enabled(capability),
-                    f"Capability {capability} selected",
-                    "profile:select replaces the selection: include codex wsl docker and all other desired capabilities, then mise bootstrap --update --locked",
-                    True,
-                )
 
     def node(self):
         resolved = run("mise", "which", "node").stdout.strip()
@@ -96,7 +80,6 @@ class Runtime:
             bool(selected and Path(selected).resolve() == Path(resolved).resolve()),
             f"Node PATH: {selected or 'missing'}",
             "activate mise in a fresh login shell (exec zsh -l)",
-            self.agentic,
         )
         result = run(resolved, "--version")
         self.check(
@@ -108,7 +91,7 @@ class Runtime:
 
     def bubblewrap(self):
         binary = shutil.which("bwrap")
-        required = self.agentic or enabled("codex")
+        required = enabled("codex")
         self.check(
             bool(binary),
             f"Bubblewrap PATH binary: {binary or 'missing (Codex would use its bundled fallback)'}",
@@ -149,60 +132,17 @@ class Runtime:
         )
 
     def systemd(self):
-        required = self.agentic
         self.check(
             read("/proc/1/comm") == "systemd",
             "systemd is PID 1",
             "enable [boot] systemd=true in /etc/wsl.conf; save work, then wsl --shutdown from Windows and reopen Ubuntu",
-            required,
-        )
-        root = Path("/sys/fs/cgroup")
-        available = set(read(root / "cgroup.controllers").split())
-        self.check(
-            CONTROLLERS <= available,
-            f"cgroup v2 root controllers: {' '.join(sorted(available)) or 'missing'}",
-            "update WSL/kernel and enable cgroup v2 with cpu memory pids",
-            required,
         )
         manager = run("systemctl", "--user", "show", "--property=ControlGroup", "--value")
         group = manager.stdout.strip()
-        if not self.check(
+        self.check(
             manager.returncode == 0 and group.startswith("/") and group != "/",
             "systemd user manager reachable",
             "bootstrap wsl (dbus-user-session/libpam-systemd), then reopen a normal WSL login; check systemctl --user status and XDG_RUNTIME_DIR",
-            required,
-        ):
-            return
-        # Only inspect the manager's own subtree, never project scopes or workloads.
-        subtree = (root / group.lstrip("/")).resolve()
-        delegated = (
-            set(read(subtree / "cgroup.controllers").split())
-            if subtree.is_relative_to(root)
-            else set()
-        )
-        self.check(
-            CONTROLLERS <= delegated,
-            f"User cgroup controllers: {' '.join(sorted(delegated)) or 'missing'}",
-            "restore systemd delegation of cpu memory pids to the user manager; inspect systemctl show user@$(id -u).service -p Delegate; reopen WSL",
-            required,
-        )
-        result = run(
-            "systemd-run",
-            "--user",
-            "--quiet",
-            "--wait",
-            "--pipe",
-            "--collect",
-            "--property=MemoryMax=64M",
-            "--property=TasksMax=32",
-            "--property=CPUQuota=100%",
-            "/usr/bin/true",
-        )
-        self.check(
-            result.returncode == 0,
-            "Transient user unit with CPU, memory and task limits",
-            "run systemd-run --user --wait --pipe -p MemoryMax=64M -p TasksMax=32 -p CPUQuota=100% /usr/bin/true; inspect the user journal; keep resource limits enabled",
-            required,
         )
 
     def interop(self):
@@ -215,7 +155,7 @@ class Runtime:
             result is not None and result.returncode == 0,
             f"Windows interop: {binary or 'cmd.exe missing'}",
             "enable WSL interop and the Windows mount, then reopen WSL; do not disable the sandbox",
-            self.agentic or enabled("wsl"),
+            enabled("wsl"),
         )
 
     def docker(self):
@@ -228,9 +168,8 @@ class Runtime:
             linux_cli,
             f"Docker WSL CLI: {binary or 'missing'}",
             "install/start Docker Desktop on Windows, select WSL2 engine and enable this distro in Settings > Resources > WSL Integration",
-            self.agentic,
         )
-        if self.bootstrap and not self.agentic:
+        if self.bootstrap:
             print("  [SKIP] Docker daemon/Compose: optional in --bootstrap")
             return
         if not linux_cli:
@@ -248,19 +187,18 @@ class Runtime:
             result.returncode == 0 and "docker desktop" in result.stdout.lower(),
             "Docker Desktop daemon reachable through WSL integration",
             "start Docker Desktop, enable this distro's integration at /var/run/docker.sock; a separate Linux/remote engine does not validate Desktop integration",
-            self.agentic,
         )
         self.check(
             compose.returncode == 0,
             "Docker Compose available",
             "repair/update Docker Desktop WSL integration",
-            self.agentic or result.returncode == 0,
+            result.returncode == 0,
         )
 
     def codex(self):
         standalone = Path.home() / ".local/bin/codex"
         selected = shutil.which("codex")
-        required = self.agentic or enabled("codex")
+        required = enabled("codex")
         exists = standalone.is_file() and os.access(standalone, os.X_OK)
         if not self.check(
             exists, f"Codex standalone: {standalone}", "mise run codex:install", required
@@ -302,23 +240,16 @@ class Runtime:
             )
 
     def diagnose(self):
-        print(
-            "==> "
-            + (
-                "Required common agentic prerequisites"
-                if self.agentic
-                else "General host diagnostic (optional prerequisites warn)"
-            )
-        )
+        print("==> General host diagnostic (optional prerequisites warn)")
         self.host()
         self.node()
-        if self.agentic or enabled("codex"):
+        if enabled("codex"):
             self.bubblewrap()
             self.codex()
-        if self.agentic or enabled("wsl"):
+        if enabled("wsl"):
             self.systemd()
             self.interop()
-        if self.agentic or enabled("docker"):
+        if enabled("docker"):
             self.docker()
         print(f"  Runtime failures: {self.failures}")
         return int(self.failures > 0)
@@ -326,15 +257,11 @@ class Runtime:
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    mode = parser.add_mutually_exclusive_group()
-    mode.add_argument(
-        "--agentic",
-        action="store_true",
-        help="require codex+wsl+docker common prerequisites; no inference",
+    parser.add_argument(
+        "--bootstrap", action="store_true", help="skip optional Docker daemon checks"
     )
-    mode.add_argument("--bootstrap", action="store_true", help="skip optional Docker daemon checks")
     args = parser.parse_args()
-    return Runtime(args.agentic, args.bootstrap).diagnose()
+    return Runtime(bootstrap=args.bootstrap).diagnose()
 
 
 if __name__ == "__main__":

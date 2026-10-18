@@ -71,31 +71,26 @@ L'association `codex` + `wsl` configure le SDK Codex Agent Host pour réutiliser
 
 `profile:select` **remplace la sélection active** : fournir toutes les capacités souhaitées, y compris celles à conserver. La sélection ne désinstalle pas les outils déjà installés. Pour une session temporaire : `mise -E wsl,github bootstrap --update --locked`. `personal` inclut `wsl`. WSL gère l'interop Windows nativement ; cette capacité installe la session DBus/PAM utilisateur et une condition systemd qui empêche `systemd-binfmt` d'échouer sur le registre protégé par WSL. Après son premier bootstrap, enregistrer le travail puis lancer `wsl --shutdown` dans PowerShell Windows et rouvrir Ubuntu : cela arrête toutes les distributions WSL et applique la condition au prochain démarrage. `mise run workstation:doctor --bootstrap` vérifie ensuite l'exécution Windows.
 
-## Prerequis communs pour une boucle agentique
+## Developpement avec Codex et Docker sous WSL
 
-Après l'installation neuve ci-dessus, sélectionner les trois capacités existantes puis réappliquer le même bootstrap :
+Les capacités sont indépendantes : sélectionner celles dont le workflow a besoin, en ajoutant les autres capacités à conserver. Pour Codex natif et son intégration VS Code sous WSL :
 
 ```bash
-# Remplace la sélection : ajouter ici les autres capacités à conserver.
-mise run profile:select codex wsl docker
+mise run profile:select codex wsl
 mise bootstrap --update --locked
 exec zsh -l
-```
-
-Le socle fournit Node via mise et `libatomic1`. `codex` ajoute Bubblewrap et le standalone officiel avec son helper `codex-code-mode-host` ; `wsl` ajoute `dbus-user-session`, qui dépend de `libpam-systemd`. Aucun moteur Docker Linux n'est installé.
-
-Sur Windows, garder WSL à jour (`wsl --update`), vérifier `wsl --list --verbose` et installer/démarrer Docker Desktop avec le moteur WSL2 et les conteneurs Linux. Dans **Settings > Resources > WSL Integration**, activer cette distribution puis appliquer. Vérifier que systemd est actif dans Ubuntu ; si nécessaire, ajouter `[boot]` avec `systemd=true` à `/etc/wsl.conf` en conservant les autres réglages. Enregistrer le travail, lancer `wsl --shutdown` depuis PowerShell puis rouvrir Ubuntu sous son utilisateur Linux ordinaire. L'interop Windows doit rester active. Voir les guides [systemd dans WSL](https://learn.microsoft.com/en-us/windows/wsl/systemd) et [Docker Desktop WSL2](https://docs.docker.com/desktop/features/wsl/).
-
-```bash
-# Provisionnement général, sans comptes ni obligation de démarrer Docker Desktop.
 mise run workstation:doctor --bootstrap
-# Prérequis communs obligatoires, sans connexion à un modèle ni inférence.
-mise run workstation:doctor --agentic
 ```
 
-Le second contrôle échoue si une capacité requise est inactive ou si Ubuntu/architecture/WSL2, Node, Bubblewrap, le standalone/helper Codex, systemd utilisateur, les contrôleurs cgroup v2 `cpu memory pids`, l'interop ou Docker Desktop/Compose sont incompatibles. Il lance uniquement des sondes locales : namespaces Bubblewrap et unité utilisateur transitoire avec limites CPU/mémoire/processus. Chaque refus indique une piste de correction. Exécuter le diagnostic dans un terminal WSL normal : une sandbox d'agent peut bloquer ces sondes et ne valide alors pas l'hôte. Ne pas désactiver une frontière pour obtenir un succès. Détails : [diagnostic et dépendances](docs/TOOLS.md#diagnostic-des-prerequis-communs).
+Le socle fournit Node via mise et `libatomic1`. `codex` ajoute Bubblewrap pour la sandbox native et le standalone officiel avec son helper `codex-code-mode-host` ; `wsl` ajoute `dbus-user-session`, qui dépend de `libpam-systemd`.
 
-Les mises à jour restent explicites avec `mise run codex:update`, `updateall` et les mécanismes mise existants. Node suit sa majeure courante déclarée et le lockfile évolue ; aucune ancienne version Codex ou Node n'est imposée à demeure. Après mise à jour, relancer le diagnostic et les validations du projet consommateur. Workstation prépare le poste ; `m4rise/sulu-cms-platform` reste propriétaire de sa boucle, de ses permissions, frontières, oracles et validations. Un doctor vert ne valide pas le lot 2 Sulu.
+Pour utiliser Docker, inclure aussi `docker` dans la sélection. Aucun moteur Docker Linux n'est installé. Sur Windows, installer/démarrer Docker Desktop avec le moteur WSL2 et les conteneurs Linux, puis activer cette distribution dans **Settings > Resources > WSL Integration**. Voir le guide [Docker Desktop WSL2](https://docs.docker.com/desktop/features/wsl/).
+
+Garder WSL à jour (`wsl --update`) et vérifier `wsl --list --verbose`. Si systemd n'est pas actif, ajouter `[boot]` avec `systemd=true` à `/etc/wsl.conf` en conservant les autres réglages, puis enregistrer le travail et lancer `wsl --shutdown` depuis PowerShell. Voir [systemd dans WSL](https://learn.microsoft.com/en-us/windows/wsl/systemd).
+
+`mise run workstation:doctor` vérifie les outils et intégrations sélectionnés ; `--bootstrap` omet les comptes et les sondes du daemon Docker/Compose. Les diagnostics affichent les chemins et les pistes de correction. Les lancer depuis un terminal WSL normal : une sandbox peut bloquer les sondes natives de Bubblewrap ou l'interop. Détails : [diagnostic du poste](docs/TOOLS.md#diagnostic-du-poste).
+
+Les mises à jour restent explicites avec `mise run codex:update`, `updateall` et les mécanismes mise existants. Après mise à jour, relancer le diagnostic et les validations des projets concernés.
 
 ## Identite et restauration
 
@@ -138,7 +133,7 @@ mise run workstation:check
 
 `-E secrets` ajoute les outils cryptographiques pour cette commande sans changer le profil enregistré. Les tests utilisent des données fictives et des répertoires temporaires ; ils ne restaurent rien dans le compte courant.
 
-La CI applique ces contrôles sur Ubuntu 26.04, exporte le commit et teste les sources exportées. Un second job installe **cet export dans une vraie distribution Ubuntu 26.04 WSL** sur Windows : bootstrap générique avec snapshot shell, composition `codex wsl docker`, activation des capacités personnelles, applications répétées et contrôle de convergence. Après un `wsl --shutdown`, elle vérifie que systemd est opérationnel et relance le doctor. Docker Desktop, les véritables comptes et l'ouverture graphique du coffre restent à valider sur le poste. La CI se déclenche sur les PR, `main`, chaque semaine et manuellement.
+La CI applique ces contrôles sur Ubuntu 26.04, exporte le commit et teste les sources exportées. Un second job installe **cet export dans une vraie distribution Ubuntu 26.04 WSL** sur Windows : bootstrap générique avec snapshot shell, intégration `codex wsl`, activation des capacités personnelles, applications répétées et contrôle de convergence. Après un `wsl --shutdown`, elle vérifie que systemd est opérationnel et relance le doctor. Docker Desktop, les véritables comptes et l'ouverture graphique du coffre restent à valider sur le poste. La CI se déclenche sur les PR, `main`, chaque semaine et manuellement.
 
 La reproductibilité concerne la configuration, les CLI verrouillées et, sur demande, les commits shell. Les packages APT et l'installateur Codex évoluent : cette configuration ne produit pas une image système identique octet par octet.
 
