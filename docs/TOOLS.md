@@ -40,30 +40,27 @@ APT fournit les prérequis système : certificats, curl, Git, OpenSSH, Zsh, outi
 | `secrets` | fnox, age et age-keygen | `mise.secrets.lock` |
 | `vault` | KeePassXC complet, keepassxc-cli | APT Ubuntu |
 
-### Diagnostic des prerequis communs
+### Diagnostic du poste
 
-`workstation:doctor` conserve le diagnostic général des capacités sélectionnées et des intégrations personnelles. `--bootstrap` omet les comptes et le daemon Docker facultatif. `--agentic` exige explicitement `codex wsl docker` et les prérequis communs, sans vérifier les comptes ni lancer d'inférence. Ce mode de diagnostic ne constitue ni une capacité ni un bootstrap supplémentaire.
+`workstation:doctor` vérifie le socle, les capacités sélectionnées et les intégrations personnelles. `--bootstrap` omet les comptes et les sondes du daemon Docker/Compose. Aucune combinaison de capacités n'est imposée.
 
-| Contrôle | Refus en mode `--agentic` / correction |
+| Contrôle | Comportement et correction |
 | --- | --- |
-| Ubuntu 26.04, x86-64, noyau WSL2, utilisateur non root | Employer la cible supportée et une session Linux ordinaire ; `wsl --update` côté Windows |
-| Node | Affiche chemin mise, chemin PATH et version ; refuse une surcharge PATH ou un runtime non exécutable ; `mise install --locked`, nouveau shell et examen de `ldd` |
-| Bubblewrap | Affiche le premier `bwrap` du PATH et sa cible réelle ; teste user/PID/network namespaces et montage racine en lecture seule ; réappliquer `codex` et vérifier le profil AppArmor du paquet Ubuntu |
-| Codex | Vérifie le standalone `~/.local/bin/codex`, la cible réellement sélectionnée, `--version`, le helper adjacent `codex-code-mode-host --help` et le lien Agent Host existant ; `codex:install` ou `codex:update` |
-| systemd utilisateur | PID 1, accès au manager et unité transitoire `MemoryMax=64M`, `TasksMax=32`, `CPUQuota=100%` ; vérifier session PAM/DBus et activation systemd WSL |
-| cgroup v2 | Contrôleurs `cpu memory pids` à la racine et dans le sous-arbre du manager utilisateur ; restaurer la délégation systemd et mettre WSL à jour |
-| Interop | Exécution de `cmd.exe`, avec repli sur le montage Windows par défaut ; vérifier l'interop et le montage WSL |
-| Docker Desktop | CLI Linux, serveur Desktop joignable sur `/var/run/docker.sock`, Compose ; activer l'intégration de cette distro dans Windows |
+| Ubuntu 26.04, x86-64, noyau WSL2 | Avertissement hors cible ; employer la distribution supportée et garder WSL à jour |
+| Node | Affiche chemin mise, chemin PATH et version ; runtime absent/non exécutable en échec, surcharge PATH en avertissement ; `mise install --locked`, nouveau shell et examen de `ldd` |
+| Bubblewrap, si `codex` | Vérifie le binaire, user/PID/network namespaces et montage racine en lecture seule ; réappliquer `codex` et vérifier le profil AppArmor du paquet Ubuntu |
+| Codex, si `codex` | Vérifie le standalone `~/.local/bin/codex`, le PATH, `--version`, le helper adjacent `codex-code-mode-host --help` et, si `wsl`, le lien Agent Host existant ; `codex:install` ou `codex:update` |
+| systemd, si `wsl` | Avertissement si PID 1 ou manager utilisateur indisponible ; vérifier activation systemd WSL et session PAM/DBus |
+| Interop, si `wsl` | Échec si `cmd.exe` ne s'exécute pas, avec repli sur le montage Windows par défaut ; vérifier l'interop et le montage WSL |
+| Docker Desktop, si `docker` | CLI Linux et serveur Desktop local en avertissement si indisponibles ; Compose en échec si le daemon est joignable mais Compose absent ; activer l'intégration de cette distro dans Windows |
 
-Le contrôle Docker sonde explicitement le socket local avec une configuration temporaire vide : il ne lit pas les credentials Docker et un contexte distant ne peut pas masquer l'absence d'intégration WSL. Codex est sondé avec un `CODEX_HOME` temporaire. Aucune authentification n'est nécessaire. Les sorties privées des commandes ne sont pas reproduites.
+Le contrôle Docker sonde explicitement `/var/run/docker.sock` avec une configuration temporaire vide : il ne lit pas les credentials Docker et un contexte distant ne peut pas masquer l'absence d'intégration WSL. Codex est sondé avec un `CODEX_HOME` temporaire. Aucune authentification ni inférence n'est nécessaire pour ces sondes. Les sorties privées des commandes ne sont pas reproduites.
 
-Sans `--agentic`, l'absence de capacités facultatives ne fait pas échouer le profil générique ; systemd/cgroup non prêts produisent des avertissements si `wsl` est sélectionnée. Les CLI sélectionnées restent contrôlées. `--bootstrap` ne prétend donc pas valider tous les prérequis d'une boucle.
+Le profil générique n'exige aucune capacité facultative. Les contrôles Node et ceux des outils sélectionnés restent actifs avec `--bootstrap`, y compris Codex, Bubblewrap et l'interop WSL.
 
-Les packages ajoutés résultent d'un examen `readelf -d` et `ldd` des exécutables Linux x86-64 installés : Node requiert `libatomic.so.1` (`libatomic1`), ainsi que libc/libstdc++/libgcc déjà amenées par Ubuntu et `build-essential`. Le standalone musl Codex et son helper examinés ne déclarent aucune entrée `NEEDED` ; aucune bibliothèque supplémentaire n'est ajoutée pour eux. Bubblewrap dépend de libc, libcap et libselinux, résolues par son paquet APT. `dbus-user-session` apporte la session bus et dépend de `libpam-systemd` ; le bootstrap WSL assure leur présence sans remplacer les réglages WSL privés. Ces observations ne figent aucune version et doivent être réexaminées si les artefacts amont changent.
+Node requiert `libatomic.so.1` (`libatomic1`), ainsi que libc/libstdc++/libgcc déjà amenées par Ubuntu et `build-essential`. Bubblewrap fournit la sandbox native de Codex ; ses dépendances libc, libcap et libselinux sont résolues par APT. Le helper code-mode est distinct du mécanisme de sandbox. `dbus-user-session` apporte la session bus et dépend de `libpam-systemd` ; le bootstrap WSL assure leur présence sans remplacer les réglages WSL privés.
 
-Codex utilise le premier `bwrap` du PATH, sinon son repli intégré, selon la [documentation OpenAI sur la sandbox](https://learn.chatgpt.com/docs/sandboxing). Le parcours workstation exige le paquet Bubblewrap et sa sonde fonctionnelle. Le helper code-mode est distinct de ce repli de sandbox. Si le layout standalone change, le diagnostic doit échouer avec la procédure de mise à jour, puis être adapté aux nouveaux artefacts. Ne pas substituer un helper d'une autre release ni désactiver AppArmor, les namespaces ou les limites de ressources.
-
-Ce contrôle vérifie la disponibilité des mécanismes communs. La politique exacte de montage/réseau, l'arrêt de toute une arborescence de processus, les permissions et oracles de Sulu relèvent de `sulu-cms-platform` et de ses validations du lot 2. Aucun verrou inter-dépôts n'est introduit. Les commandes `codex:update`, `updateall` et la maintenance mise restent inchangées.
+Si le layout standalone change, adapter le diagnostic aux nouveaux artefacts après mise à jour. Ne pas substituer un helper d'une autre release ni désactiver AppArmor ou les namespaces pour faire réussir la sonde. Les commandes `codex:update`, `updateall` et la maintenance mise restent disponibles.
 
 ### Codex dans VS Code Agents (WSL)
 

@@ -56,19 +56,8 @@ test ! -e /home/contributor/.local/bin/codex
 test ! -e /home/contributor/.config/git/identity.conf
 runuser -l contributor -c '! ~/.local/bin/mise which gh'
 
-# A generic installation must reject the explicit common agentic prerequisites.
-diagnostic="$(mktemp)"
-if runuser -l contributor -c 'cd ~/.config/mise && ~/.local/bin/mise run workstation:doctor --agentic' >"$diagnostic" 2>&1; then
-    echo "Expected --agentic to refuse missing capabilities on generic." >&2
-    rm -f "$diagnostic"
-    exit 1
-fi
-grep -F '[FAIL] Capability codex selected' "$diagnostic"
-grep -F '[FAIL] Capability docker selected' "$diagnostic"
-rm -f "$diagnostic"
-
-# Public lot 1 path: existing capabilities, same bootstrap, then convergence.
-runuser -l contributor -c 'cd ~/.config/mise && ~/.local/bin/mise run profile:select codex wsl docker'
+# Verify Codex and its VS Code WSL integration independently of Docker Desktop.
+runuser -l contributor -c 'cd ~/.config/mise && ~/.local/bin/mise run profile:select codex wsl'
 runuser -l contributor -c 'cd ~/.config/mise && ~/.local/bin/mise bootstrap --update --locked --yes'
 runuser -l contributor -c 'cd ~/.config/mise && ~/.local/bin/mise bootstrap --locked --yes'
 runuser -l contributor -c 'cd ~/.config/mise && ~/.local/bin/mise bootstrap status --missing'
