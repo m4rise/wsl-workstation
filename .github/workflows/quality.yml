@@ -38,7 +38,7 @@ jobs:
       - name: Read shared bootstrap version
         id: bootstrap
         run: python3 scripts/bootstrap_metadata.py >> "$GITHUB_OUTPUT"
-      - uses: jdx/mise-action@9b200bcecbfd6303e69a4a261b2e09e3757440a7 # v5
+      - uses: jdx/mise-action@6612f0ef07ed2a736cd1e00a94a065522dd41195 # v5
         with:
           version: ${{ steps.bootstrap.outputs.version }}
           install: false
