@@ -40,4 +40,7 @@ fi
 if [[ "${WORKSTATION_DOCKER:-0}" == 1 ]]; then
     echo "Enable Docker Desktop WSL integration in Windows."
 fi
+if [[ "${WORKSTATION_HERMES:-0}" == 1 ]]; then
+    echo "Hermes: mise run hermes:install --help (explicit release and project destinations)."
+fi
 echo "Open a fresh shell: exec zsh -l; then run devdoctor."

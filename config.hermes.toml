@@ -1,0 +1,5 @@
+[bootstrap.packages]
+"apt:bubblewrap" = "latest"
+
+[env]
+WORKSTATION_HERMES = "1"

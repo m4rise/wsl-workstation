@@ -68,6 +68,7 @@ Après modification des sources système, appliquer `mise bootstrap --locked`, p
 | `~/.docker/config.json` | Intégration Docker Desktop locale ; le fichier peut aussi contenir des identifiants |
 | `~/.config/keepassxc/keepassxc.ini` | Préférences indépendantes du coffre ; la capture du KDBX ne les inclut pas |
 | `miserc.toml`, `config.local.toml` dans ce dépôt | Sélection de capacités et paramètres du poste, ignorés par Git ; documenter les options nécessaires à une reprise |
+| Configuration projet Hermes et données de mission | Chemins explicites hors installation ; sauvegarde privée `hermes:backup`, restauration en quarantaine ; voir [Hermes](HERMES.md) |
 | `/etc/wsl.conf` | Activation de systemd à revoir côté WSL ; utilisateur par défaut propre à l'installation |
 | `%USERPROFILE%/.wslconfig` sous Windows, si présent | Paramètres de la VM WSL côté hôte, à documenter séparément |
 | `~/.npmrc`, `~/.config/pnpm/rc`, `~/.cargo/config.toml`, si présents | Extraire les préférences portables sans jetons de registre ni chemins personnels |
