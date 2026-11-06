@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "version": "0.2.0",
+  "archive": "hermes-runner-linux-0.2.0.tar.gz",
+  "sha256": "d34e3137251caeb5a8e5e990a763f0625d0a8d0720256361aa2feed7a19ea861",
+  "python": "3.14.4",
+  "codex": "0.166.0",
+  "gh": "2.101.0",
+  "hermes_revision": "bf0203a794a07aac3ff764972ab9087baa4e4f4e",
+  "hermes_sha256": "0dc2cca54657d162845a77f634e107c61c3fb0bd6c8505212aa2e200591b7cc9",
+  "sdd_version": "0.4.0",
+  "sdd_pin": "a52e8fca5bc4c6f7b7f3fe6adbe23a5bc042294e"
+}

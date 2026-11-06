@@ -39,6 +39,12 @@ APT fournit les prérequis système : certificats, curl, Git, OpenSSH, Zsh, outi
 | `wsl` | dbus-user-session (avec libpam-systemd), interop Windows native et condition systemd-binfmt | Sources versionnées |
 | `secrets` | fnox, age et age-keygen | `mise.secrets.lock` |
 | `vault` | KeePassXC complet, keepassxc-cli | APT Ubuntu |
+| `hermes` | Python, Codex et gh via mise dans les tâches seulement ; Bubblewrap ; runner Linux isolé | `mise.hermes-tools.lock`, `system/hermes/release.json` |
+
+Le [parcours Hermes](HERMES.md) utilise `hermes:run -- --config ... doctor`
+pour vérifier son environnement effectif. Ses modèles sont configurables,
+son seul runner disponible est `codex-linux`. Le doctor général garde ses
+contrôles WSL/Desktop pour les autres capacités.
 
 ### Diagnostic du poste
 

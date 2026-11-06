@@ -54,12 +54,13 @@ La sélection utilise les environnements natifs mise, enregistrés dans `miserc.
 | `wsl` | Session systemd utilisateur, interop Windows native et adaptation systemd-binfmt |
 | `secrets` | fnox + age et commandes de sauvegarde/restauration |
 | `vault` | KeePassXC via APT ; CLI utilisable sans écran, interface graphique facultative avec WSLg |
+| `hermes` | Runner Hermes Linux, Python/Codex épinglés via mise ; installation et données explicites, voir [le parcours Hermes](docs/HERMES.md) |
 
 ```bash
 mise run profile:select wsl github
 mise bootstrap --update --locked
 
-# Toutes les capacités du setup personnel, dont la restauration et KeePassXC.
+# Capacités du setup personnel, dont restauration et KeePassXC ; Hermes reste opt-in.
 mise run profile:select personal
 mise bootstrap --update --locked
 

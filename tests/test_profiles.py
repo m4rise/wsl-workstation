@@ -32,13 +32,17 @@ class ProfileTests(unittest.TestCase):
                 MISE_STATE_DIR=str(root / "state"),
                 MISE_TRUSTED_CONFIG_PATHS=str(root),
             )
-            capabilities = {"github", "cloud", "codex", "docker", "wsl", "secrets", "vault"}
+            personal = {"github", "cloud", "codex", "docker", "wsl", "secrets", "vault"}
+            capabilities = personal | {"hermes"}
             for selection, active in [
                 ("generic", set()),
-                ("personal", capabilities),
+                ("personal", personal),
+                ("hermes", {"hermes"}),
                 ("codex", {"codex"}),
                 ("docker", {"docker"}),
                 ("codex wsl", {"codex", "wsl"}),
+                ("codex hermes", {"codex", "hermes"}),
+                ("hermes codex github", {"hermes", "codex", "github"}),
                 ("wsl", {"wsl"}),
             ]:
                 subprocess.run(
@@ -57,6 +61,8 @@ class ProfileTests(unittest.TestCase):
                         resolved[f"WORKSTATION_{capability.upper()}"],
                         "1" if capability in active else "0",
                     )
+                # Selecting a capability must not shadow the standalone Codex.
+                self.assertNotIn("aqua-openai-codex", resolved["PATH"])
             (root / "miserc.toml").write_text('env = ["wsl"]\n# retained\n')
             subprocess.run(
                 ["python3", str(ROOT / "scripts/profile.py"), "personal"],

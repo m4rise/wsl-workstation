@@ -1,0 +1,5 @@
+# Internal task environment: do not persist in the workstation capability selector.
+[tools]
+python = "3.14.4"
+"aqua:openai/codex" = "0.166.0"
+"github:cli/cli" = "2.101.0"

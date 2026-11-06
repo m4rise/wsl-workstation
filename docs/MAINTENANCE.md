@@ -175,6 +175,13 @@ Licence [MIT](../LICENSE) ; les dépendances gardent leurs propres licences. Voi
 
 ## Retour arriere et incidents
 
+Hermes a un [cycle séparé](HERMES.md#mise-a-jour-sauvegarde-et-reprise) : nouvelles
+releases côte à côte, sauvegarde du store arrêté, qualification puis adoption
+explicite des chemins au même contrat. `dev:update` ne met pas à jour le composant
+ou ses stores ; les sélecteurs mise Hermes restent exacts. Une évolution de ces
+pins exige la qualification du runner. Ne pas supprimer une version mise encore
+référencée par une installation conservée.
+
 Revenir à un commit de configuration connu et réinstaller les versions verrouillées. Cela ne restaure pas automatiquement les anciennes versions APT, mise, Codex ou Windows. Désactiver une capacité ne retire ni packages ni services ; examiner les ressources avant toute suppression explicite.
 
 Sur un poste déjà configuré, préserver les fichiers locaux d'identité, signature, SSH, préférences et capacités. Les sauvegardes éventuelles sous `~/.local/state/workstation/migration` sont privées et ne doivent pas être publiées. Une alerte réelle de secret implique révocation/rotation et analyse de l'historique. Une exception de scanner doit rester ciblée sur un faux positif établi.

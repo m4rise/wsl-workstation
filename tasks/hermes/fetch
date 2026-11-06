@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+#MISE description="Fetch and verify an immutable Hermes release from an explicitly chosen repository"
+
+set -euo pipefail
+repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
+# shellcheck source=scripts/capabilities.sh
+source "$repo_root/scripts/capabilities.sh"
+workstation_require hermes
+exec python3 "$repo_root/scripts/hermes.py" fetch "$@"

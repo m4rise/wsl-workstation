@@ -6,7 +6,8 @@ import json
 import os
 from pathlib import Path
 
-CAPABILITIES = ("github", "cloud", "codex", "docker", "wsl", "secrets", "vault")
+PERSONAL = ("github", "cloud", "codex", "docker", "wsl", "secrets", "vault")
+CAPABILITIES = (*PERSONAL, "hermes")
 
 
 def main():
@@ -19,7 +20,7 @@ def main():
     if selected == ["generic"]:
         selected = []
     elif selected == ["personal"]:
-        selected = list(CAPABILITIES)
+        selected = list(PERSONAL)
     elif any(name not in CAPABILITIES for name in selected):
         parser.error("Use generic/personal alone or a list of supported capabilities")
     selected = list(dict.fromkeys(selected))

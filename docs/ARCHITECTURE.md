@@ -27,6 +27,16 @@ Le [suivi des configurations](CONFIGURATION.md) explicite les fichiers liés, le
 
 Chaque capacité émet un indicateur `WORKSTATION_<NOM>` utilisé par le bootstrap final, les tâches, le shell et le diagnostic. Le socle remet tous les indicateurs à zéro : désactiver une capacité ne dépend pas de la présence résiduelle d'un binaire. Les tâches Codex et Docker refusent de s'exécuter quand leur capacité est inactive.
 
+La capacité [Hermes](HERMES.md) reste exclue de `personal`. Workstation possède
+le provisionnement des releases et délègue les missions à Hermes Runner Linux.
+Les dépendances utilisateur viennent de `mise.hermes-tools.lock` et sont résolues
+uniquement pour les processus Hermes ; la distribution vient de
+`system/hermes/release.json`. Les installations sont immuables, la configuration
+et les données sont distinctes. Le runner possède les capacités de mission,
+les décisions pending et les états incertains ; aucun second ordonnanceur ou
+moteur de méthode n'est ajouté. Son parcours Linux n'exige pas les capacités
+`wsl`, `docker` ou le standalone `codex` de workstation.
+
 ## Cycle du bootstrap
 
 `mise bootstrap --update --locked` applique les ressources déclaratives, les dotfiles, le shell de connexion, les outils verrouillés puis la tâche `bootstrap`. Le profil cloud ajoute sa clé publique et son dépôt APT en phase `pre-packages`. `--update` rafraîchit ensuite les index nécessaires à `google-cloud-cli`.
