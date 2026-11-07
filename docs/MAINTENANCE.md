@@ -58,7 +58,7 @@ Pour remplacer un ancien bootstrap privé déjà installé, partir de l'historiq
 
 ## Versions et changements
 
-Les commandes quotidiennes `updateall` et `devupdate` conservent leur fonctionnement : mise, outils, dépôts shell et Codex actif sont mis à jour. Avec `codex` et `wsl`, la mise à jour vérifie aussi le lien du [SDK Agent Host](TOOLS.md#codex-dans-vs-code-agents-wsl) vers le CLI standalone. Redémarrer les sessions Agent Host pour utiliser le nouveau binaire. Relancer `mise run workstation:doctor` après mise à jour pour contrôler les capacités sélectionnées, puis les validations des projets concernés. Les commandes de mise à jour peuvent changer les lockfiles ; examiner ces changements avant commit. Elles ne capturent aucune configuration et ne font aucun commit/push.
+Les commandes quotidiennes `updateall` et `devupdate` conservent leur fonctionnement : mise, outils, dépôts shell et Codex actif sont mis à jour. Avec `codex` et `wsl`, la mise à jour vérifie aussi le lien du [SDK Agent Host](TOOLS.md#codex-dans-vs-code-agents-wsl) vers le CLI standalone. Redémarrer les sessions Agent Host pour utiliser le nouveau binaire. Relancer `mise run workstation:doctor` après mise à jour pour contrôler les capacités sélectionnées, puis les validations des projets concernés. La tâche `codex:update` fournit explicitement `~/.local/bin` au PATH de l’installateur pour éviter l’ajout d’un bloc `Codex installer` dans les fichiers shell : le PATH reste géré par `.zprofile`. Les commandes de mise à jour peuvent changer les lockfiles ; examiner ces changements avant commit. Elles ne capturent aucune configuration et ne font aucun commit/push.
 
 Pour actualiser uniquement les versions verrouillées, sans mise à jour des packages système ou du shell :
 
